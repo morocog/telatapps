@@ -461,15 +461,16 @@ function closeLiveAgentModal() {
 }
 
 function launchNativeElevenLabsWindow() {
-  const previewUrl = 'https://elevenlabs.io/app/agents/agents/agent_1101kyjnvcjwedr9k5vga3xz25yp/preview?include_draft=true&branchId=agtbrch_4801kyjnvdftezatta397kx6gq4v';
-  const width = 640;
+  closeLiveAgentModal();
+  const publicTalkUrl = 'https://elevenlabs.io/app/talk-to?agent_id=agent_1101kyjnvcjwedr9k5vga3xz25yp&branch_id=agtbrch_4801kyjnvdftezatta397kx6gq4v';
+  const width = 680;
   const height = 780;
   const left = (window.screen.width / 2) - (width / 2);
   const top = (window.screen.height / 2) - (height / 2);
   
   window.open(
-    previewUrl,
-    'ElevenLabsVoiceAgent',
+    publicTalkUrl,
+    'AMSOCVoiceAgentPublic',
     `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
   );
 }

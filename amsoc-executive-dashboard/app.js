@@ -1,18 +1,4 @@
 // Global Window Functions (Exposed immediately)
-window.launchNativeElevenLabsWindow = function() {
-  const previewUrl = 'https://elevenlabs.io/app/agents/agents/agent_1101kyjnvcjwedr9k5vga3xz25yp/preview?include_draft=true&branchId=agtbrch_4801kyjnvdftezatta397kx6gq4v';
-  const width = 640;
-  const height = 780;
-  const left = (window.screen.width / 2) - (width / 2);
-  const top = (window.screen.height / 2) - (height / 2);
-  
-  window.open(
-    previewUrl,
-    'ElevenLabsVoiceAgent',
-    `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
-  );
-};
-
 window.openLiveAgentModal = function() {
   const modal = document.getElementById('liveAgentModal');
   if (modal) modal.classList.add('open');
@@ -156,11 +142,6 @@ function setupEventListeners() {
   const btnTestAgent = document.getElementById('btnTestAgentLive');
   if (btnTestAgent) {
     btnTestAgent.addEventListener('click', window.openLiveAgentModal);
-  }
-
-  const btnLaunchNative = document.getElementById('btnLaunchNativeVoice');
-  if (btnLaunchNative) {
-    btnLaunchNative.addEventListener('click', window.launchNativeElevenLabsWindow);
   }
 
   // Export CSV
@@ -462,17 +443,8 @@ function closeLiveAgentModal() {
 
 function launchNativeElevenLabsWindow() {
   closeLiveAgentModal();
-  const publicTalkUrl = 'https://elevenlabs.io/app/talk-to?agent_id=agent_1101kyjnvcjwedr9k5vga3xz25yp&token=cvtkn_2601kynar5xqfhr97ssy3e50q2v2&branch_id=agtbrch_4801kyjnvdftezatta397kx6gq4v';
-  const width = 680;
-  const height = 780;
-  const left = (window.screen.width / 2) - (width / 2);
-  const top = (window.screen.height / 2) - (height / 2);
-  
-  window.open(
-    publicTalkUrl,
-    'AMSOCVoiceAgentPublic',
-    `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
-  );
+  const publicTalkUrl = 'https://elevenlabs.io/app/talk-to?agent_id=agent_1101kyjnvcjwedr9k5vga3xz25yp&token=cvtkn_2601kynar5xqfhr97ssy3e50q2v2';
+  window.open(publicTalkUrl, '_blank');
 }
 
 // Exponer explícitamente a window para onclick attributes

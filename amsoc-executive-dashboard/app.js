@@ -182,6 +182,11 @@ function fetchLiveData() {
   const statusEl = document.getElementById('liveSyncText');
   if (statusEl) statusEl.textContent = 'Sincronizando...';
 
+  const tableBody = document.getElementById('callLogTableBody');
+  if (tableBody && (!tableBody.children || tableBody.children.length === 0)) {
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2.5rem 1rem; color: #9CA3AF;"><span class="kpi-skeleton">Sincronizando datos en tiempo real con la base de datos...</span></td></tr>`;
+  }
+
   // Limpiar cualquier URL obsoleta guardada localmente
   localStorage.removeItem('AMSOC_GAS_URL');
 
@@ -241,21 +246,21 @@ function calculateAndRenderKPIs(records) {
   const getStatus = r => r.estatus_asistencia || r.status || '';
   const confirmados = records.filter(r => getStatus(r) === 'Confirmado').length;
   const transferidos = records.filter(r => getStatus(r) === 'Transfiere_Lugar').length;
-  const rechazados = records.filter(r => getStatus(r) === 'Rechazado').length;
-  const indecisos = records.filter(r => getStatus(r) === 'Indeciso').length;
 
   const totalEfectivos = confirmados + transferidos;
   const contactationRate = totalCalls > 0 ? ((totalEfectivos / totalCalls) * 100).toFixed(1) : "18.4";
 
   setElText('kpiTotalCalls', totalCalls.toLocaleString());
-  setElText('kpiConfirmados', (confirmados > 0 ? confirmados : 328).toLocaleString());
+  setElText('kpiConfirmed', confirmados.toLocaleString());
+  setElText('kpiConfirmados', confirmados.toLocaleString());
   setElText('kpiRate', `${contactationRate}%`);
-  setElText('kpiTransferidos', (transferidos > 0 ? transferidos : 42).toLocaleString());
+  setElText('kpiDelegated', transferidos.toLocaleString());
+  setElText('kpiTransferidos', transferidos.toLocaleString());
 }
 
 function setElText(id, val) {
   const el = document.getElementById(id);
-  if (el) el.textContent = val;
+  if (el) el.innerHTML = val;
 }
 
 function renderCharts(records) {

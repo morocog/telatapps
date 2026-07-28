@@ -71,7 +71,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
           </div>
         </div>
-        <div class="kpi-value" id="kpiTotalCalls">1,845</div>
+        <div class="kpi-value" id="kpiTotalCalls"><span class="kpi-skeleton">--</span></div>
         <div class="kpi-footer">
           <span class="kpi-trend-up">↑ 100%</span> Vueltas en ejecución activa
         </div>
@@ -85,7 +85,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4"/><path d="M12 16V8"/></svg>
           </div>
         </div>
-        <div class="kpi-value" id="kpiRate">18.4%</div>
+        <div class="kpi-value" id="kpiRate"><span class="kpi-skeleton">--</span></div>
         <div class="kpi-footer">
           <span class="kpi-trend-up">Meta: 15% - 20%</span> Cumplimiento óptimo BPO
         </div>
@@ -99,53 +99,46 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           </div>
         </div>
-        <div class="kpi-value" id="kpiConfirmados">328</div>
+        <div class="kpi-value" id="kpiConfirmed"><span class="kpi-skeleton">--</span></div>
         <div class="kpi-footer">
           Boleto digital QR despachado vía correo
         </div>
       </article>
 
-      <!-- Lugares Transferidos -->
+      <!-- Lugares Delegados -->
       <article class="kpi-card yellow-accent">
         <div class="kpi-header">
           <span class="kpi-title">Lugares Delegados</span>
           <div class="kpi-icon" style="color: var(--telat-yellow);">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
           </div>
         </div>
-        <div class="kpi-value" id="kpiTransferidos">42</div>
+        <div class="kpi-value" id="kpiDelegated"><span class="kpi-skeleton">--</span></div>
         <div class="kpi-footer">
           Directivos reasignados por la empresa
         </div>
       </article>
     </section>
 
-    <!-- Charts Section Grid -->
+    <!-- Analytics Charts Grid -->
     <section class="charts-grid">
-      <!-- Status Distribution Donut -->
-      <article class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">Distribución de Estatus de Asistencia</h3>
-        </div>
+      <div class="chart-card">
+        <h3>Distribución de Estatus de Asistencia</h3>
         <div class="chart-container">
           <canvas id="statusChart"></canvas>
         </div>
-      </article>
-
-      <!-- Rejection Reasons Bar Chart -->
-      <article class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">Desglose de Motivos de Rechazo</h3>
-        </div>
+      </div>
+      <div class="chart-card">
+        <h3>Desglose de Motivos de Rechazo</h3>
         <div class="chart-container">
           <canvas id="rejectionChart"></canvas>
         </div>
-      </article>
+      </div>
     </section>
 
-    <!-- Real-Time Call Log Table -->
-    <section class="table-card">
-      <div class="table-toolbar">
+    <!-- Call Records Data Table -->
+    <section class="table-section">
+      <div class="table-header-controls">
         <div class="search-box">
           <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" id="tableSearchInput" class="search-input" placeholder="Buscar por Call ID, correo o resumen...">
@@ -196,27 +189,28 @@
 
   <!-- Live Test Agent Modal -->
   <div id="liveAgentModal" class="modal-backdrop" onclick="if(event.target === this) closeLiveAgentModal()">
-    <div class="modal-box" style="max-width: 580px; width: 95%; padding: 2rem; text-align: center;">
-      <div class="modal-header" style="margin-bottom: 1.25rem; padding-bottom: 0.75rem;">
-        <h3 class="modal-title">Simulador de Llamada IA — AMSOC 2026</h3>
+    <div class="modal-box" style="max-width: 580px; width: 95%; padding: 2.25rem 2rem; text-align: center;">
+      <div class="modal-header" style="margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <h3 class="modal-title" style="font-size: 1.25rem;">Consola Conversacional de Inteligencia Artificial</h3>
         <button class="close-btn" onclick="closeLiveAgentModal()">&times;</button>
       </div>
       <div class="modal-body" style="padding: 1rem 0;">
-        <div style="width: 70px; height: 70px; background: rgba(34, 197, 94, 0.12); border: 2px solid rgba(34, 197, 94, 0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto; color: #4ADE80; box-shadow: 0 0 25px rgba(34, 197, 94, 0.25);">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        <div style="width: 76px; height: 76px; background: rgba(34, 197, 94, 0.12); border: 2px solid rgba(34, 197, 94, 0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; color: #4ADE80; box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
         </div>
 
-        <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.5rem;">
-          Consola Conversacional de Voz Nativa
+        <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.75rem;">
+          Simulador de Voz Ejecutiva — AMSOC 2026
         </h4>
         
-        <p style="color: #9CA3AF; font-size: 0.88rem; line-height: 1.6; margin-bottom: 1.75rem; padding: 0 0.5rem;">
-          Presiona el botón a continuación para abrir la consola nativa de ElevenLabs en una ventana flotante limpia. Podrás hablar directamente por micrófono con el agente y, al finalizar, los datos se registrarán en tiempo real en tu Google Sheet.
+        <p style="color: #9CA3AF; font-size: 0.92rem; line-height: 1.65; margin-bottom: 2rem; padding: 0 1rem;">
+          Presiona el botón a continuación para conectar con nuestro <strong>Sistema de Inteligencia Artificial Conversacional</strong>. Podrás interactuar directamente por micrófono con el agente ejecutivo y, al finalizar la llamada, los datos se registrarán automáticamente en la base de datos.
         </p>
 
-        <button id="btnLaunchNativeVoice" onclick="window.launchNativeElevenLabsWindow()" style="background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%); border: none; color: #FFFFFF; font-family: 'Outfit', sans-serif; font-size: 1.05rem; font-weight: 700; padding: 0.9rem 2.2rem; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 20px rgba(34, 197, 94, 0.35); display: inline-flex; align-items: center; gap: 0.75rem; transition: transform 0.2s ease;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          Abrir Consola de Voz en Vivo
+        <button id="btnLaunchNativeVoice" onclick="window.launchNativeElevenLabsWindow()" class="btn-voice-large">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+          Iniciar Interacción de Voz IA
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
       </div>
     </div>
@@ -226,6 +220,6 @@
     <p>AMSOC 2026 Executive Campaign Dashboard — Impulsado por Telat Group BPO & Voice AI Automation Services</p>
   </footer>
 
-  <script src="app.js?v=2.0.5"></script>
+  <script src="app.js?v=2.0.6"></script>
 </body>
 </html>

@@ -460,28 +460,6 @@ function closeLiveAgentModal() {
   if (modal) modal.classList.remove('open');
 }
 
-function launchNativeElevenLabsWindow() {
-  closeLiveAgentModal();
-
-  // Si existe el elemento embebido <elevenlabs-convai>, también lo iniciamos/enfocamos
-  const embeddedWidget = document.querySelector('elevenlabs-convai');
-  if (embeddedWidget && typeof embeddedWidget.click === 'function') {
-    try { embeddedWidget.click(); } catch(e) {}
-  }
-
-  const publicTalkUrl = 'https://elevenlabs.io/app/talk-to?agent_id=agent_1101kyjnvcjwedr9k5vga3xz25yp&token=cvtkn_2601kynar5xqfhr97ssy3e50q2v2&branch_id=agtbrch_4801kyjnvdftezatta397kx6gq4v';
-  const width = 680;
-  const height = 780;
-  const left = (window.screen.width / 2) - (width / 2);
-  const top = (window.screen.height / 2) - (height / 2);
-  
-  window.open(
-    publicTalkUrl,
-    'AMSOCVoiceAgentPublic',
-    `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
-  );
-}
-
 // Exponer explícitamente a window para onclick attributes
 window.launchNativeElevenLabsWindow = launchNativeElevenLabsWindow;
 window.openLiveAgentModal = openLiveAgentModal;

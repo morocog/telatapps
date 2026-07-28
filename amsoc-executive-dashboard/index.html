@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AMSOC 2026 - Executive Campaign Dashboard | Telat Group</title>
+  <meta name="description" content="Dashboard Ejecutivo de Prospección y Confirmación Outbound para la Convención Binacional AMSOC 2026 impulsado por Inteligencia Artificial y Telat Group.">
+  
+  <!-- CSS & Typography -->
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Top Executive Navigation Bar -->
+  <header class="top-navbar">
+    <div class="brand-section">
+      <img src="https://telat.mx/assets/img/logo.png" alt="Telat Group Logo" class="telat-logo">
+      <div class="brand-divider"></div>
+      <div class="campaign-title">
+        <h1>Convención Binacional AMSOC 2026</h1>
+        <div class="campaign-subtitle">Prospección & Confirmación Outbound IA — Executive Monitor</div>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <div class="live-indicator">
+        <span class="pulse-dot"></span>
+        <span id="liveSyncText">En Vivo (Google Sheets)</span>
+      </div>
+
+      <button id="btnRefreshData" class="btn-action" title="Actualizar datos">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
+        Actualizar
+      </button>
+
+      <button id="btnTestAgentLive" class="btn-action" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.4); color: #4ADE80;" title="Probar Agente IA en Vivo">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        Probar Agente IA
+      </button>
+
+      <button id="btnExportCsv" class="btn-action btn-action-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar CSV
+      </button>
+    </div>
+  </header>
+
+  <!-- Dashboard Container -->
+  <main class="dashboard-container">
+
+    <!-- Executive Overview Card -->
+    <section class="executive-header-card">
+      <div class="header-info">
+        <h2>Panel de Control Directivo — Campaña AMSOC</h2>
+        <p>Monitoreo en tiempo real de prospección, confirmaciones QR y trazabilidad de contactos salientes (23 de Septiembre 2026, Hotel Camino Real Polanco CDMX).</p>
+      </div>
+      <div class="target-badge">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Target: 8,000 Registros | Max 3 Vueltas
+      </div>
+    </section>
+
+    <!-- KPI Metric Cards Grid -->
+    <section class="kpi-grid">
+      <!-- Total Calls -->
+      <article class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">Procesadas Total</span>
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
+        </div>
+        <div class="kpi-value" id="kpiTotalCalls">1,845</div>
+        <div class="kpi-footer">
+          <span class="kpi-trend-up">↑ 100%</span> Vueltas en ejecución activa
+        </div>
+      </article>
+
+      <!-- Contactation Effective Rate -->
+      <article class="kpi-card orange-accent">
+        <div class="kpi-header">
+          <span class="kpi-title">Contactación Efectiva</span>
+          <div class="kpi-icon" style="color: var(--telat-orange);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4"/><path d="M12 16V8"/></svg>
+          </div>
+        </div>
+        <div class="kpi-value" id="kpiRate">18.4%</div>
+        <div class="kpi-footer">
+          <span class="kpi-trend-up">Meta: 15% - 20%</span> Cumplimiento óptimo BPO
+        </div>
+      </article>
+
+      <!-- Confirmados RSVP -->
+      <article class="kpi-card green-accent">
+        <div class="kpi-header">
+          <span class="kpi-title">Confirmados RSVP</span>
+          <div class="kpi-icon" style="color: #22C55E;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+        </div>
+        <div class="kpi-value" id="kpiConfirmados">328</div>
+        <div class="kpi-footer">
+          Boleto digital QR despachado vía correo
+        </div>
+      </article>
+
+      <!-- Lugares Transferidos -->
+      <article class="kpi-card yellow-accent">
+        <div class="kpi-header">
+          <span class="kpi-title">Lugares Delegados</span>
+          <div class="kpi-icon" style="color: var(--telat-yellow);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+          </div>
+        </div>
+        <div class="kpi-value" id="kpiTransferidos">42</div>
+        <div class="kpi-footer">
+          Directivos reasignados por la empresa
+        </div>
+      </article>
+    </section>
+
+    <!-- Charts Section Grid -->
+    <section class="charts-grid">
+      <!-- Status Distribution Donut -->
+      <article class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Distribución de Estatus de Asistencia</h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="statusChart"></canvas>
+        </div>
+      </article>
+
+      <!-- Rejection Reasons Bar Chart -->
+      <article class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Desglose de Motivos de Rechazo</h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="rejectionChart"></canvas>
+        </div>
+      </article>
+    </section>
+
+    <!-- Real-Time Call Log Table -->
+    <section class="table-card">
+      <div class="table-toolbar">
+        <div class="search-box">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="tableSearchInput" class="search-input" placeholder="Buscar por Call ID, correo o resumen...">
+        </div>
+
+        <div class="filter-pills">
+          <button class="pill-btn active" data-filter="ALL">Todos</button>
+          <button class="pill-btn" data-filter="Confirmado">Confirmados</button>
+          <button class="pill-btn" data-filter="Transfiere_Lugar">Transfiere Lugar</button>
+          <button class="pill-btn" data-filter="Rechazado">Rechazados</button>
+          <button class="pill-btn" data-filter="Indeciso">Indecisos</button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>ID Llamada</th>
+              <th>Estatus</th>
+              <th>Correo Confirmado</th>
+              <th>Representante</th>
+              <th>Resumen Conversación IA</th>
+              <th>Hora</th>
+            </tr>
+          </thead>
+          <tbody id="callLogTableBody">
+            <!-- Rendered dynamically by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Detail Modal -->
+  <div id="detailModal" class="modal-backdrop" onclick="if(event.target === this) closeModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Detalle de Registro y Análisis IA</h3>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <div id="modalDetailBody" class="modal-body">
+        <!-- Content inserted dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Test Agent Modal -->
+  <div id="liveAgentModal" class="modal-backdrop" onclick="if(event.target === this) closeLiveAgentModal()">
+    <div class="modal-box" style="max-width: 580px; width: 95%; padding: 2rem; text-align: center;">
+      <div class="modal-header" style="margin-bottom: 1.25rem; padding-bottom: 0.75rem;">
+        <h3 class="modal-title">Simulador de Llamada IA — AMSOC 2026</h3>
+        <button class="close-btn" onclick="closeLiveAgentModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1rem 0;">
+        <div style="width: 70px; height: 70px; background: rgba(34, 197, 94, 0.12); border: 2px solid rgba(34, 197, 94, 0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto; color: #4ADE80; box-shadow: 0 0 25px rgba(34, 197, 94, 0.25);">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        </div>
+
+        <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.5rem;">
+          Consola Conversacional de Voz Nativa
+        </h4>
+        
+        <p style="color: #9CA3AF; font-size: 0.88rem; line-height: 1.6; margin-bottom: 1.75rem; padding: 0 0.5rem;">
+          Presiona el botón a continuación para abrir la consola nativa de ElevenLabs en una ventana flotante limpia. Podrás hablar directamente por micrófono con el agente y, al finalizar, los datos se registrarán en tiempo real en tu Google Sheet.
+        </p>
+
+        <button id="btnLaunchNativeVoice" onclick="window.launchNativeElevenLabsWindow()" style="background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%); border: none; color: #FFFFFF; font-family: 'Outfit', sans-serif; font-size: 1.05rem; font-weight: 700; padding: 0.9rem 2.2rem; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 20px rgba(34, 197, 94, 0.35); display: inline-flex; align-items: center; gap: 0.75rem; transition: transform 0.2s ease;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Abrir Consola de Voz en Vivo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>AMSOC 2026 Executive Campaign Dashboard — Impulsado por Telat Group BPO & Voice AI Automation Services</p>
+  </footer>
+
+  <script src="app.js?v=2.0.5"></script>
+</body>
+</html>

@@ -371,7 +371,7 @@ function filterAndRenderTable(searchQuery = '') {
     const labelStatus = String(status).replace('_', ' ');
     const correo = r.correo_confirmado || r.email || r.correo || 'N/A';
     const rep = r.nombre_representante || r.representative || r.representante || 'N/A';
-    const resumen = r.resumen || r.summary || 'N/A';
+    const resumen = cleanSummary(r.resumen || r.summary || 'N/A');
     const fecha = r.fecha || r.time || 'N/A';
 
     return `
@@ -401,18 +401,41 @@ function getBadgeClass(status) {
 function formatDate(dateStr) {
   if (!dateStr) return 'N/A';
   try {
-    const normalized = dateStr.replace('T', ' ').split('.')[0];
-    const parts = normalized.split(' ');
-    if (parts.length === 2) {
-      const dateParts = parts[0].split('-');
-      if (dateParts.length === 3) {
-        return `${dateParts[2]}/${dateParts[1]}/${dateParts[0]} ${parts[1]}`;
-      }
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) {
+      return dateStr;
     }
-    return normalized;
+    const pad = (n) => String(n).padStart(2, '0');
+    const day = pad(d.getDate());
+    const month = pad(d.getMonth() + 1);
+    const year = d.getFullYear();
+    const hours = pad(d.getHours());
+    const minutes = pad(d.getMinutes());
+    const seconds = pad(d.getSeconds());
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
   } catch (e) {
     return dateStr;
   }
+}
+
+function cleanSummary(text) {
+  if (!text) return "";
+  let cleaned = text.trim();
+  const patterns = [
+    /^el agente de la american society of mexico invitó al usuario a su convención binacional el 23 de septiembre\.?\s*/i,
+    /^el agente de la american society de méxico invitó al usuario a su convención binacional el 23 de septiembre\.?\s*/i,
+    /^the agent from the american society of mexico invited the user to their binational convention on september 23rd\.?\s*/i,
+    /^the agent from the american society of mexico invited the user to the binational convention\.?\s*/i,
+    /^the agent invited the user to the binational convention\.?\s*/i,
+    /^el agente invitó al usuario a la convención binacional\.?\s*/i
+  ];
+  for (const pattern of patterns) {
+    cleaned = cleaned.replace(pattern, "");
+  }
+  if (cleaned.length > 0) {
+    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  }
+  return cleaned;
 }
 
 function openDetailModal(callId) {
@@ -424,7 +447,7 @@ function openDetailModal(callId) {
   const correoVal = item.correo_confirmado || item.email || item.correo || 'N/A';
   const repVal = item.nombre_representante || item.representative || item.representante || 'N/A';
   const motivoVal = item.motivo_rechazo || 'N/A';
-  const resumenVal = item.resumen || item.summary || 'N/A';
+  const resumenVal = cleanSummary(item.resumen || item.summary || 'N/A');
 
   const modalBody = document.getElementById('modalDetailBody');
   if (modalBody) {

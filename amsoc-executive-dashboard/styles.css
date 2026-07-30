@@ -602,13 +602,15 @@ footer {
 }
 
 /* Estilos para el Widget de ElevenLabs dentro de la Modal */
-#liveAgentModal elevenlabs-convai {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  margin: 1.25rem auto 0 auto !important;
+elevenlabs-convai {
   position: relative !important;
   bottom: auto !important;
   right: auto !important;
+  left: auto !important;
+  top: auto !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin: 1rem auto !important;
   z-index: 10001 !important;
 }

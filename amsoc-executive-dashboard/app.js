@@ -234,11 +234,11 @@ window.handleGoogleSheetsData = function(data) {
       };
     });
 
-    currentRecords = [...realRecords.reverse(), ...DEMO_RECORDS];
+    currentRecords = realRecords.reverse();
     renderDashboard(currentRecords);
     if (statusEl) statusEl.textContent = 'En Vivo (Google Sheets)';
   } else {
-    currentRecords = [...REAL_SHEETS_RECORDS, ...DEMO_RECORDS];
+    currentRecords = [];
     renderDashboard(currentRecords);
     if (statusEl) statusEl.textContent = 'En Vivo (Google Sheets)';
   }
@@ -376,12 +376,12 @@ function filterAndRenderTable(searchQuery = '') {
 
     return `
       <tr onclick="openDetailModal('${callId}')" style="cursor: pointer;">
-        <td><span class="call-id-text">${callId}</span></td>
+        <td style="color: #9CA3AF; font-size: 0.85rem; font-weight: 500;">${formatDate(fecha)}</td>
         <td><span class="status-badge ${badgeClass}">${labelStatus}</span></td>
         <td style="font-weight: 500;">${correo}</td>
         <td>${rep}</td>
         <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${resumen}</td>
-        <td style="color: #9CA3AF; font-size: 0.8rem;">${formatDate(fecha)}</td>
+        <td><span class="call-id-text">${callId}</span></td>
       </tr>
     `;
   }).join('');
@@ -401,9 +401,15 @@ function getBadgeClass(status) {
 function formatDate(dateStr) {
   if (!dateStr) return 'N/A';
   try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const normalized = dateStr.replace('T', ' ').split('.')[0];
+    const parts = normalized.split(' ');
+    if (parts.length === 2) {
+      const dateParts = parts[0].split('-');
+      if (dateParts.length === 3) {
+        return `${dateParts[2]}/${dateParts[1]}/${dateParts[0]} ${parts[1]}`;
+      }
+    }
+    return normalized;
   } catch (e) {
     return dateStr;
   }

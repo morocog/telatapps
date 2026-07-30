@@ -401,17 +401,42 @@ function getBadgeClass(status) {
 function formatDate(dateStr) {
   if (!dateStr) return 'N/A';
   try {
-    const d = new Date(dateStr);
+    let d;
+    // Si viene en formato YYYY-MM-DD HH:mm:ss, parsear componentes locales directamente
+    const normalized = dateStr.replace('T', ' ').split('.')[0];
+    const parts = normalized.split(' ');
+    if (parts.length === 2) {
+      const dateParts = parts[0].split('-');
+      const timeParts = parts[1].split(':');
+      if (dateParts.length === 3 && timeParts.length >= 2) {
+        d = new Date(
+          parseInt(dateParts[0]),
+          parseInt(dateParts[1]) - 1,
+          parseInt(dateParts[2]),
+          parseInt(timeParts[0]),
+          parseInt(timeParts[1]),
+          timeParts[2] ? parseInt(timeParts[2]) : 0
+        );
+      }
+    }
+    
+    if (!d || isNaN(d.getTime())) {
+      d = new Date(dateStr);
+    }
+    
     if (isNaN(d.getTime())) {
       return dateStr;
     }
+    
     const pad = (n) => String(n).padStart(2, '0');
     const day = pad(d.getDate());
-    const month = pad(d.getMonth() + 1);
+    const monthsEs = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    const month = monthsEs[d.getMonth()];
     const year = d.getFullYear();
     const hours = pad(d.getHours());
     const minutes = pad(d.getMinutes());
     const seconds = pad(d.getSeconds());
+    
     return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
   } catch (e) {
     return dateStr;

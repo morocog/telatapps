@@ -600,21 +600,3 @@ footer {
   box-shadow: 0 10px 30px rgba(34, 197, 94, 0.6);
   background: linear-gradient(135deg, #25D366 0%, #15803D 100%);
 }
-
-/* Estilos para el Widget de ElevenLabs dentro de la Modal */
-elevenlabs-convai {
-  display: none !important;
-}
-
-#liveAgentModal.open elevenlabs-convai {
-  display: flex !important;
-  position: relative !important;
-  bottom: auto !important;
-  right: auto !important;
-  left: auto !important;
-  top: auto !important;
-  margin: 1rem auto !important;
-  justify-content: center !important;
-  align-items: center !important;
-  z-index: 10001 !important;
-}

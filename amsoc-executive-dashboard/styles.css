@@ -600,3 +600,18 @@ footer {
   box-shadow: 0 10px 30px rgba(34, 197, 94, 0.6);
   background: linear-gradient(135deg, #25D366 0%, #15803D 100%);
 }
+
+/* Reglas de Ocultamiento de Widget Flotante de Esquina */
+elevenlabs-convai {
+  display: none !important;
+}
+
+#liveAgentModal.open elevenlabs-convai {
+  display: flex !important;
+  position: relative !important;
+  bottom: auto !important;
+  right: auto !important;
+  margin: 1.5rem auto 0 auto !important;
+  justify-content: center !important;
+  z-index: 10001 !important;
+}

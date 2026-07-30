@@ -470,7 +470,13 @@ function closeLiveAgentModal() {
 }
 
 function launchNativeElevenLabsWindow() {
-  closeLiveAgentModal();
+  const widget = document.querySelector('elevenlabs-convai');
+  if (widget && typeof widget.click === 'function') {
+    try {
+      widget.click();
+      return;
+    } catch(e) {}
+  }
   const publicTalkUrl = 'https://elevenlabs.io/app/talk-to?agent_id=agent_1101kyjnvcjwedr9k5vga3xz25yp&token=cvtkn_2601kynar5xqfhr97ssy3e50q2v2';
   window.open(publicTalkUrl, '_blank');
 }

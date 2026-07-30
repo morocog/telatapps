@@ -69,7 +69,7 @@ Quickly confirm executive attendance for the AMSOC 2026 Binational Convention (S
 3. QUICK CLOSING:
    - "Great, we will email you the agenda and access pass. We look forward to seeing you on September 23rd! Have a great day."`;
 
-const FIRST_MESSAGE = "Hola {{nombre_contacto}}, habla un ejecutivo de la American Society of Mexico. Te llamo para invitarte a nuestra Convención Binacional este 23 de septiembre en Polanco. ¿Podremos contar con tu asistencia?";
+const FIRST_MESSAGE = "Hola, habla un ejecutivo de la American Society of Mexico. Te llamo para invitarte a nuestra Convención Binacional este 23 de septiembre en Polanco. ¿Podremos contar con tu asistencia?";
 
 async function updateAgent(webhookUrl = DEFAULT_WEBHOOK) {
     if (!API_KEY) {

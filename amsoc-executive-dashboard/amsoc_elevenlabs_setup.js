@@ -49,7 +49,7 @@ Quickly confirm executive attendance for the AMSOC 2026 Binational Convention (S
 
 # FLUJO DE CONVERSACIÓN EN ESPAÑOL
 1. SALUDO Y PREGUNTA DIRECTA:
-   - "Hola {{nombre_contacto}}, habla un ejecutivo de la American Society of Mexico. Te llamo para invitarte a nuestra Convención Binacional este 23 de septiembre en Polanco. ¿Podremos contar con tu asistencia?"
+   - "Hola, hablo de la American Society of Mexico. Te llamo para invitarte a nuestra Convención Binacional este 23 de septiembre en Polanco. ¿Podremos contar con tu asistencia?"
 
 2. CONFIRMACIÓN Y RECOPILACIÓN:
    - Si CONFIRMA: "¡Excelente! Por favor confírmame tu correo electrónico para enviarte el código QR de acceso."
@@ -60,7 +60,7 @@ Quickly confirm executive attendance for the AMSOC 2026 Binational Convention (S
 
 # CONVERSATION FLOW IN ENGLISH
 1. GREETING & DIRECT QUESTION:
-   - "Hello {{nombre_contacto}}, this is an executive representative from the American Society of Mexico. I'm calling to invite you to our Binational Convention on September 23rd in Polanco. Will you be able to attend?"
+   - "Hello, I'm calling from the American Society of Mexico to invite you to our Binational Convention on September 23rd in Polanco. Will you be able to attend?"
 
 2. CONFIRMATION & DATA COLLECTION:
    - If CONFIRMED: "Wonderful! Please confirm your email address so we can send your digital QR access pass."
@@ -69,7 +69,7 @@ Quickly confirm executive attendance for the AMSOC 2026 Binational Convention (S
 3. QUICK CLOSING:
    - "Great, we will email you the agenda and access pass. We look forward to seeing you on September 23rd! Have a great day."`;
 
-const FIRST_MESSAGE = "Hola, habla un ejecutivo de la American Society of Mexico. Te llamo para invitarte a nuestra Convención Binacional este 23 de septiembre en Polanco. ¿Podremos contar con tu asistencia?";
+const FIRST_MESSAGE = "Hola, hablo de la American Society of Mexico. Te llamo para invitarte a nuestra Convención Binacional este 23 de septiembre en Polanco. ¿Podremos contar con tu asistencia?";
 
 async function updateAgent(webhookUrl = DEFAULT_WEBHOOK) {
     if (!API_KEY) {
@@ -86,7 +86,12 @@ async function updateAgent(webhookUrl = DEFAULT_WEBHOOK) {
         conversation_config: {
             agent: {
                 prompt: {
-                    prompt: SYSTEM_PROMPT
+                    prompt: SYSTEM_PROMPT,
+                    built_in_tools: {
+                        language_detection: {
+                            name: "language_detection"
+                        }
+                    }
                 },
                 first_message: FIRST_MESSAGE
             }

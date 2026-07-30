@@ -277,7 +277,7 @@ function renderCharts(records) {
   const confirmados = records.filter(r => getStatus(r) === 'Confirmado').length || 18;
   const transferidos = records.filter(r => getStatus(r) === 'Transfiere_Lugar').length || 4;
   const rechazados = records.filter(r => getStatus(r) === 'Rechazado').length || 6;
-  const indecisos = records.filter(r => getStatus(r) === 'Indeciso').length || 3;
+  const sinInteraccion = records.filter(r => getStatus(r) === 'Sin Interacción' || getStatus(r) === 'Indeciso').length || 3;
 
   const ctxStatus = document.getElementById('statusChart')?.getContext('2d');
   if (ctxStatus) {
@@ -285,10 +285,10 @@ function renderCharts(records) {
     statusChartInstance = new Chart(ctxStatus, {
       type: 'doughnut',
       data: {
-        labels: ['Confirmados', 'Transfiere Lugar', 'Rechazados', 'Indecisos'],
+        labels: ['Confirmados', 'Transfiere Lugar', 'Rechazados', 'Sin Interacción'],
         datasets: [{
-          data: [confirmados, transferidos, rechazados, indecisos],
-          backgroundColor: ['#22C55E', '#3B82F6', '#EF4444', '#F59E0B'],
+          data: [confirmados, transferidos, rechazados, sinInteraccion],
+          backgroundColor: ['#22C55E', '#3B82F6', '#EF4444', '#9CA3AF'],
           borderWidth: 0
         }]
       },
@@ -354,7 +354,9 @@ function filterAndRenderTable(searchQuery = '') {
       rep.toLowerCase().includes(query) ||
       resumen.toLowerCase().includes(query);
 
-    const matchesFilter = activeFilter === 'ALL' || status === activeFilter;
+    const matchesFilter = activeFilter === 'ALL' || 
+      status === activeFilter ||
+      (activeFilter === 'Sin_Interaccion' && (status === 'Sin Interacción' || status === 'Indeciso'));
 
     return matchesSearch && matchesFilter;
   });
@@ -394,6 +396,7 @@ function getBadgeClass(status) {
     case 'Rechazado': return 'badge-rechazado';
     case 'Transfiere_Lugar': return 'badge-transfiere';
     case 'Indeciso': return 'badge-indeciso';
+    case 'Sin Interacción': return 'badge-sin-interaccion';
     default: return 'badge-indeciso';
   }
 }

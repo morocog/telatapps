@@ -6,11 +6,36 @@
  * ==============================================================================
  */
 
-const API_KEY = "sk_25b25a8b26b88709860d8694982e9c75236a123c5afe4f0f";
+const fs = require('fs');
+const path = require('path');
+
+function loadEnv() {
+    const envPath = path.join(__dirname, '.env');
+    if (fs.existsSync(envPath)) {
+        const envConfig = fs.readFileSync(envPath, 'utf8');
+        envConfig.split('\n').forEach(line => {
+            const trimmed = line.trim();
+            if (trimmed && !trimmed.startsWith('#')) {
+                const [key, ...valueParts] = trimmed.split('=');
+                if (key && valueParts.length > 0) {
+                    process.env[key.trim()] = valueParts.join('=').trim();
+                }
+            }
+        });
+    }
+}
+loadEnv();
+
+const API_KEY = process.env.ELEVENLABS_API_KEY;
 const AGENT_ID = "agent_1101kyjnvcjwedr9k5vga3xz25yp";
 const PHONE_NUMBER_ID = "phnum_8401kyk397s3e58rqh7rykh38hpm"; // US Twilio Number: +1 662 374 7937
 
 async function triggerOutboundCall(targetPhone, targetName = "Luis Cortina") {
+    if (!API_KEY) {
+        console.error("\n[ERROR CRÍTICO]: No se encontró ELEVENLABS_API_KEY en las variables de entorno o archivo .env.");
+        return;
+    }
+
     if (!targetPhone) {
         console.log("\n[USO]: node amsoc_test_call.js +5255XXXXXXXX \"Nombre del Director\"");
         return;

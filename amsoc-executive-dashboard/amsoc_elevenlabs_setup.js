@@ -1,23 +1,53 @@
-const API_KEY = "sk_25b25a8b26b88709860d8694982e9c75236a123c5afe4f0f";
+const fs = require('fs');
+const path = require('path');
+
+// Cargar variables de entorno desde .env de forma segura
+function loadEnv() {
+    const envPath = path.join(__dirname, '.env');
+    if (fs.existsSync(envPath)) {
+        const envConfig = fs.readFileSync(envPath, 'utf8');
+        envConfig.split('\n').forEach(line => {
+            const trimmed = line.trim();
+            if (trimmed && !trimmed.startsWith('#')) {
+                const [key, ...valueParts] = trimmed.split('=');
+                if (key && valueParts.length > 0) {
+                    process.env[key.trim()] = valueParts.join('=').trim();
+                }
+            }
+        });
+    }
+}
+loadEnv();
+
+const API_KEY = process.env.ELEVENLABS_API_KEY;
 const AGENT_ID = "agent_1101kyjnvcjwedr9k5vga3xz25yp";
 const BASE_URL = "https://api.elevenlabs.io/v1/convai";
 const DEFAULT_WEBHOOK = "https://script.google.com/macros/s/AKfycbymTuQKWWZyknRTJIcdZgmmTPOstnAW4ZONm8X1bnAZYnQF7rgtK_espuDKzOJTWFV5/exec";
 
-const SYSTEM_PROMPT = `# ROL Y PERSONALIDAD
-Eres un representante ejecutivo de la American Society of Mexico (AMSOC). Tu tono es profesional, cálido, ágil y muy directo. Hablas un español neutro y fluido.
+const SYSTEM_PROMPT = `# ROL Y PERSONALIDAD / ROLE & PERSONALITY
+Eres un representante ejecutivo de la American Society of Mexico (AMSOC). Tu tono es profesional, cálido, ágil, pulcro y muy directo. Hablas español de forma nativa e inglés fluido nativo.
+You are an executive representative of the American Society of Mexico (AMSOC). Your tone is professional, warm, agile, concise, and direct.
 
-# GUÍA DE PRONUNCIACIÓN DE MARCA
+# ADAPTACIÓN MULTILINGÜE BILINGÜE (BILINGUAL AUTO-SWITCHING) - CRÍTICO
+- IDIOMA PRINCIPAL: Español neutro profesional.
+- CAMBIO DE IDIOMA AUTOMÁTICO (AUTO-SWITCHING): Si la persona con la que hablas responde en inglés, te saluda en inglés (ej: "Hello", "Hi", "Good morning") o te pide cambiar de idioma (ej: "Can we speak in English?", "Do you speak English?"), CAMBIA DE INMEDIATO Y SIN FRICCIÓN A INGLÉS NATIVO Y FLUIDO.
+- NO pidas disculpas ni hagas comentarios innecesarios sobre el cambio de idioma. Simplemente responde de manera directa y ejecutiva en inglés.
+- Si la persona regresa a hablar en español, regresa suavemente al español sin interrupciones.
+
+# GUÍA DE PRONUNCIACIÓN DE MARCA / BRAND PRONUNCIATION
 - Pronuncia "American Society of Mexico" siempre con acento nativo estadounidense impecable: [American Society of Mexico].
 - Pronuncia la sigla "AMSOC" como "Am-Soc".
 
-# OBJETIVO DE LA LLAMADA
-Confirmar de forma rápida la asistencia del ejecutivo a la Convención Binacional AMSOC 2026 (23 de septiembre en la Ciudad de México).
+# OBJETIVO DE LA LLAMADA / CALL GOAL
+Confirmar de forma rápida la asistencia del ejecutivo a la Convención Binacional AMSOC 2026 (23 de septiembre en la Ciudad de México, Hotel Camino Real Polanco).
+Quickly confirm executive attendance for the AMSOC 2026 Binational Convention (September 23 in Mexico City at Camino Real Polanco).
 
-# INSTRUCCIÓN DE AGILIDAD EXTREMA
+# INSTRUCCIÓN DE AGILIDAD EXTREMA / BREVITY
 - Sé extremadamente breve (máximo 1 a 2 oraciones cortas por turno).
-- No des discursos ni introducciones largas. Ve directo al propósito y haz la pregunta de confirmación de inmediato.
+- Keep responses extremely brief (maximum 1 to 2 short sentences per turn).
+- No des discursos ni introducciones largas. Ve directo al propósito.
 
-# FLUJO DE CONVERSACIÓN
+# FLUJO DE CONVERSACIÓN EN ESPAÑOL
 1. SALUDO Y PREGUNTA DIRECTA:
    - "Hola {{nombre_contacto}}, habla un ejecutivo de la American Society of Mexico. Te llamo para invitarte a nuestra Convención Binacional este 23 de septiembre en Polanco. ¿Podremos contar con tu asistencia?"
 
@@ -26,13 +56,29 @@ Confirmar de forma rápida la asistencia del ejecutivo a la Convención Binacion
    - Si NO PUEDE ASISTIR: "¿Te gustaría que le enviemos la invitación a algún otro directivo de tu empresa?"
 
 3. CIERRE RÁPIDO:
-   - "Perfecto, te enviamos la agenda por correo. ¡Nos vemos este 23 de septiembre! Que tengas excelente día."`;
+   - "Perfecto, te enviamos la agenda por correo. ¡Nos vemos este 23 de septiembre! Que tengas excelente día."
+
+# CONVERSATION FLOW IN ENGLISH
+1. GREETING & DIRECT QUESTION:
+   - "Hello {{nombre_contacto}}, this is an executive representative from the American Society of Mexico. I'm calling to invite you to our Binational Convention on September 23rd in Polanco. Will you be able to attend?"
+
+2. CONFIRMATION & DATA COLLECTION:
+   - If CONFIRMED: "Wonderful! Please confirm your email address so we can send your digital QR access pass."
+   - If UNABLE TO ATTEND: "Would you like us to send the invitation to another executive from your organization?"
+
+3. QUICK CLOSING:
+   - "Great, we will email you the agenda and access pass. We look forward to seeing you on September 23rd! Have a great day."`;
 
 const FIRST_MESSAGE = "Hola {{nombre_contacto}}, habla un ejecutivo de la American Society of Mexico. Te llamo para invitarte a nuestra Convención Binacional este 23 de septiembre en Polanco. ¿Podremos contar con tu asistencia?";
 
 async function updateAgent(webhookUrl = DEFAULT_WEBHOOK) {
+    if (!API_KEY) {
+        console.error("\n[ERROR CRÍTICO]: No se encontró ELEVENLABS_API_KEY en las variables de entorno o archivo .env.");
+        process.exit(1);
+    }
+
     console.log("==================================================");
-    console.log("ACTUALIZANDO AGENTE ELEVENLABS (ULTRA DIRECTO & AGIL)");
+    console.log("ACTUALIZANDO AGENTE ELEVENLABS (BILINGÜE ESPAÑOL/INGLÉS)");
     console.log("Agent ID:", AGENT_ID);
     console.log("==================================================");
 
@@ -71,22 +117,26 @@ async function updateAgent(webhookUrl = DEFAULT_WEBHOOK) {
         }
     };
 
-    const patchRes = await fetch(`${BASE_URL}/agents/${AGENT_ID}`, {
-        method: 'PATCH',
-        headers: {
-            'xi-api-key': API_KEY,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(patchPayload)
-    });
+    try {
+        const patchRes = await fetch(`${BASE_URL}/agents/${AGENT_ID}`, {
+            method: 'PATCH',
+            headers: {
+                'xi-api-key': API_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(patchPayload)
+        });
 
-    const patchData = await patchRes.json();
-    if (patchRes.ok) {
-        console.log("\n==================================================");
-        console.log("¡ÉXITO! SYSTEM PROMPT ULTRA DIRECTO INYECTADO");
-        console.log("==================================================");
-    } else {
-        console.error("\n[ERROR]:", patchRes.status, patchData);
+        const patchData = await patchRes.json();
+        if (patchRes.ok) {
+            console.log("\n==================================================");
+            console.log("¡ÉXITO TOTAL! SYSTEM PROMPT BILINGÜE INYECTADO CORRECTAMENTE");
+            console.log("==================================================");
+        } else {
+            console.error("\n[ERROR ELEVENLABS API]:", patchRes.status, patchData);
+        }
+    } catch (err) {
+        console.error("\n[ERROR DE CONEXIÓN]:", err.message);
     }
 }
 

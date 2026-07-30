@@ -443,7 +443,7 @@ function closeLiveAgentModal() {
 
 function launchNativeElevenLabsWindow() {
   closeLiveAgentModal();
-  const publicTalkUrl = 'https://elevenlabs.io/app/talk-to?agent_id=agent_1101kyjnvcjwedr9k5vga3xz25yp';
+  const publicTalkUrl = 'https://elevenlabs.io/app/talk-to?agent_id=agent_1101kyjnvcjwedr9k5vga3xz25yp&token=cvtkn_2601kynar5xqfhr97ssy3e50q2v2&branch_id=agtbrch_4801kyjnvdftezatta397kx6gq4v';
   window.open(publicTalkUrl, '_blank');
 }
 

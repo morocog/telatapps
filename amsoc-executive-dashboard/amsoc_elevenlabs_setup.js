@@ -88,8 +88,7 @@ async function updateAgent(webhookUrl = DEFAULT_WEBHOOK) {
                 prompt: {
                     prompt: SYSTEM_PROMPT
                 },
-                first_message: FIRST_MESSAGE,
-                language: "es"
+                first_message: FIRST_MESSAGE
             }
         },
         platform_settings: {

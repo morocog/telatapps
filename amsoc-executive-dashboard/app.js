@@ -194,15 +194,43 @@ window.handleGoogleSheetsData = function(data) {
   if (data && data.status === 'success' && Array.isArray(rows) && rows.length > 0) {
     const realRecords = rows.map((r, index) => {
       const timeStr = r.fecha ? (typeof r.fecha === 'string' && r.fecha.includes('T') ? r.fecha.replace('T', ' ').slice(0, 19) : String(r.fecha)) : '2026-07-28 12:22:29';
-      const statusVal = r.estatus_asistencia || r.estatus || r.status || 'Confirmado';
+      
+      const correo = r.correo_confirmado || r.correo || r.email || 'N/A';
+      const rep = r.nombre_representante || r.representante || r.representative || 'N/A';
+      const motivo = r.motivo_rechazo || r.motivo || 'N/A';
+      
+      // Determinar estatus real sin falsos positivos de 'Confirmado' por defecto
+      let statusVal = r.estatus_asistencia || r.estatus || r.status;
+      if (!statusVal || statusVal === 'Confirmado') {
+        if (correo !== 'N/A' && correo.includes('@')) {
+          statusVal = 'Confirmado';
+        } else if (rep !== 'N/A') {
+          statusVal = 'Transfiere_Lugar';
+        } else if (motivo !== 'N/A') {
+          statusVal = 'Rechazado';
+        } else {
+          statusVal = 'Indeciso'; // Llamada de prueba o sin interacción concluyente
+        }
+      }
+
+      // Evitar resúmenes genéricos falsos cuando no hubo interacción
+      let resumenVal = r.resumen || r.summary;
+      if (!resumenVal || resumenVal.includes('type":"post_call_trans')) {
+        if (statusVal === 'Confirmado') {
+          resumenVal = `El ejecutivo confirmó su asistencia a la Convención Binacional AMSOC 2026. Correo: ${correo}.`;
+        } else {
+          resumenVal = `Sesión de prueba o llamada sin interacción de voz registrada.`;
+        }
+      }
+
       return {
         fecha: timeStr,
         call_id: r.call_id || r.id || `conv_real_${index + 1}`,
         estatus_asistencia: statusVal,
-        correo_confirmado: r.correo_confirmado || r.correo || r.email || 'N/A',
-        nombre_representante: r.nombre_representante || r.representante || r.representative || 'N/A',
-        motivo_rechazo: r.motivo_rechazo || r.motivo || 'N/A',
-        resumen: r.resumen || r.summary || `El ejecutivo confirmó su asistencia a la Convención Binacional AMSOC 2026.`
+        correo_confirmado: correo,
+        nombre_representante: rep,
+        motivo_rechazo: motivo,
+        resumen: resumenVal
       };
     });
 
@@ -443,8 +471,8 @@ function closeLiveAgentModal() {
 
 function launchNativeElevenLabsWindow() {
   closeLiveAgentModal();
-  const publicTalkUrl = 'https://elevenlabs.io/app/talk-to?agent_id=agent_1101kyjnvcjwedr9k5vga3xz25yp&branch_id=agtbrch_4801kyjnvdftezatta397kx6gq4v';
-  window.open(publicTalkUrl, '_blank');
+  const previewUrl = 'https://elevenlabs.io/app/agents/agents/agent_1101kyjnvcjwedr9k5vga3xz25yp/preview?include_draft=true&branchId=agtbrch_4801kyjnvdftezatta397kx6gq4v';
+  window.open(previewUrl, '_blank');
 }
 
 // Exponer explícitamente a window para onclick attributes

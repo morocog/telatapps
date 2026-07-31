@@ -382,7 +382,7 @@ function filterAndRenderTable(searchQuery = '') {
         <td><span class="status-badge ${badgeClass}">${labelStatus}</span></td>
         <td style="font-weight: 500;">${correo}</td>
         <td>${rep}</td>
-        <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${resumen}</td>
+        <td style="max-width: 320px; white-space: normal; line-height: 1.4; word-break: break-word; font-size: 0.82rem;" title="${resumen}">${resumen.length > 220 ? resumen.slice(0, 220) + '...' : resumen}</td>
         <td><span class="call-id-text">${callId}</span></td>
       </tr>
     `;
@@ -450,6 +450,7 @@ function cleanSummary(text) {
   if (!text) return "";
   let cleaned = text.trim();
   const patterns = [
+    /^(el agente|the agent)(,\s*en representación de la sociedad americana de méxico|,\s*representing the american society of mexico)?\s+(inició\s+una\s+llamada\s+sobre\s+un\s+evento|inició\s+la\s+llamada|inició\s+una\s+llamada|inició\s+una\s+conversación|se\s+comunicó|initiated\s+a\s+call|started\s+a\s+call|called\s+the\s+user|calling\s+regarding|started\s+the\s+conversation)\.?\s*/i,
     /^el agente de la american society of mexico invitó al usuario a su convención binacional el 23 de septiembre\.?\s*/i,
     /^el agente de la american society de méxico invitó al usuario a su convención binacional el 23 de septiembre\.?\s*/i,
     /^the agent from the american society of mexico invited the user to their binational convention on september 23rd\.?\s*/i,

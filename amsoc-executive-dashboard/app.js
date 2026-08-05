@@ -396,7 +396,7 @@ function filterAndRenderTable(searchQuery = '') {
         <td>${getSentimentBadge(sentimiento)}</td>
         <td style="font-weight: 500;">${correo}</td>
         <td>${rep}</td>
-        <td><div class="summary-scroll-cell" title="${resumen}">${resumen}</div></td>
+        <td><div class="summary-single-line" title="${resumen}">${resumen}</div></td>
         <td><span class="qa-metric-badge">⏱️ ${duracion} | ${scoreQa}</span></td>
       </tr>
     `;
@@ -474,9 +474,10 @@ function cleanSummary(text) {
   if (!text) return "";
   let cleaned = text.trim();
   const patterns = [
-    /^(de la sociedad americana de méxico|de la american society of mexico)\.?\s*/i,
+    /^(de la sociedad americana de méxico|de la american society of mexico)(\s+el\s+23\s+de\s+septiembre)?\.?\s*/i,
     /^(tras una barrera idiomática inicial|después de superar una barrera de idioma|tras una barrera de idioma),?\s*/i,
     /^(la conversación continuó en inglés,?\s*y?\s*|la llamada continuó en inglés,?\s*y?\s*)/i,
+    /^(la conversación comenzó con una invitación a la convención binacional de la sociedad americana de méxico el 23 de septiembre|la conversación comenzó con una invitación a la convención binacional|la conversación comenzó con un agente invitando al usuario a la convención binacional|la conversación comenzó con|la llamada se realizó en|el agente inició la conversación identificándose|el agente inició una conversación)\.?\s*/i,
     /^(el agente|the agent)(,\s*en representación de la sociedad americana de méxico|,\s*representing the american society of mexico)?\s+(inició\s+una\s+llamada\s+sobre\s+un\s+evento|inició\s+la\s+llamada|inició\s+una\s+llamada|inició\s+una\s+conversación|se\s+comunicó|initiated\s+a\s+call|started\s+a\s+call|called\s+the\s+user|calling\s+regarding|started\s+the\s+conversation)\.?\s*/i,
     /^el agente de la american society of mexico invitó al usuario a su convención binacional el 23 de septiembre\.?\s*/i,
     /^el agente de la american society de méxico invitó al usuario a su convención binacional el 23 de septiembre\.?\s*/i,
@@ -485,9 +486,15 @@ function cleanSummary(text) {
     /^the agent invited the user to the binational convention\.?\s*/i,
     /^el agente invitó al usuario a la convención binacional\.?\s*/i
   ];
-  for (const pattern of patterns) {
-    cleaned = cleaned.replace(pattern, "");
+  
+  let previous = "";
+  while (cleaned !== previous) {
+    previous = cleaned;
+    for (const pattern of patterns) {
+      cleaned = cleaned.replace(pattern, "").trim();
+    }
   }
+
   if (cleaned.length > 0) {
     cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
   }

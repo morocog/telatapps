@@ -408,6 +408,25 @@ function renderCharts(records) {
   }
 }
 
+function cleanField(val) {
+  if (!val) return "--";
+  if (typeof val === "object") {
+    val = val.value || val.text || val.string || val.name || "--";
+  }
+  let str = String(val).trim();
+  if (
+    str === "[object Object]" ||
+    str === "object Object" ||
+    str.toLowerCase() === "n/a" ||
+    str.toLowerCase() === "null" ||
+    str.toLowerCase() === "undefined" ||
+    !str
+  ) {
+    return "--";
+  }
+  return str;
+}
+
 function filterAndRenderTable(searchQuery = '') {
   const tbody = document.getElementById('callLogTableBody');
   if (!tbody) return;
@@ -416,11 +435,11 @@ function filterAndRenderTable(searchQuery = '') {
 
   let filtered = currentRecords.filter(r => {
     const callId = (r.call_id || r.id || '').toString();
-    const correo = (r.correo_confirmado || r.email || r.correo || '').toString();
-    const rep = (r.nombre_representante || r.representative || r.representante || '').toString();
+    const correo = cleanField(r.correo_confirmado || r.email || r.correo);
+    const rep = cleanField(r.nombre_representante || r.representative || r.representante);
+    const sentimiento = (r.sentimiento || r.sentiment || '').toString();
     const resumen = (r.resumen || r.summary || '').toString();
     const status = (r.estatus_asistencia || r.status || 'Indeciso').toString();
-    const sentimiento = (r.sentimiento || r.sentiment || '').toString();
 
     const matchesSearch = !query || 
       callId.toLowerCase().includes(query) ||
@@ -446,22 +465,26 @@ function filterAndRenderTable(searchQuery = '') {
     const status = r.estatus_asistencia || r.status || 'Indeciso';
     const badgeClass = getBadgeClass(status);
     const labelStatus = String(status).replace('_', ' ');
-    const correo = r.correo_confirmado || r.email || r.correo || 'N/A';
-    const rep = r.nombre_representante || r.representative || r.representante || 'N/A';
-    const resumen = cleanSummary(r.resumen || r.summary || 'N/A');
+    
+    const correo = cleanField(r.correo_confirmado || r.email || r.correo);
+    const rep = cleanField(r.nombre_representante || r.representative || r.representante);
+    const resumen = cleanSummary(r.resumen || r.summary || '--');
     const fecha = r.fecha || r.time || 'N/A';
     const sentimiento = r.sentimiento || r.sentiment || 'Positivo';
     const duracion = r.duracion_segundos || r.duracion || '38s';
     const scoreQa = r.score_qa || '100%';
+
+    const correoHtml = correo === '--' ? `<span style="color: #6B7280; font-weight: 500;">--</span>` : `<div class="summary-single-line" style="max-width: 170px; font-weight: 500;" title="${correo}">${correo}</div>`;
+    const repHtml = rep === '--' ? `<span style="color: #6B7280;">--</span>` : `<div class="summary-single-line" style="max-width: 120px;" title="${rep}">${rep}</div>`;
 
     return `
       <tr onclick="openDetailModal('${callId}')" style="cursor: pointer;">
         <td style="color: #9CA3AF; font-size: 0.85rem; font-weight: 500;">${formatDate(fecha)}</td>
         <td><span class="status-badge ${badgeClass}">${labelStatus}</span></td>
         <td>${getSentimentBadge(sentimiento)}</td>
-        <td style="font-weight: 500;">${correo}</td>
-        <td>${rep}</td>
-        <td><div class="summary-single-line" title="${resumen}">${resumen}</div></td>
+        <td>${correoHtml}</td>
+        <td>${repHtml}</td>
+        <td><div class="summary-single-line" style="max-width: 310px;" title="${resumen}">${resumen}</div></td>
         <td><span class="qa-metric-badge">⏱️ ${duracion} | ${scoreQa}</span></td>
       </tr>
     `;
@@ -580,10 +603,10 @@ function openDetailModal(callId) {
 
   const idVal = item.call_id || item.id || 'N/A';
   const statusVal = item.estatus_asistencia || item.status || 'Indeciso';
-  const correoVal = item.correo_confirmado || item.email || item.correo || 'N/A';
-  const repVal = item.nombre_representante || item.representative || item.representante || 'N/A';
-  const motivoVal = item.motivo_rechazo || 'N/A';
-  const resumenVal = cleanSummary(item.resumen || item.summary || 'N/A');
+  const correoVal = cleanField(item.correo_confirmado || item.email || item.correo);
+  const repVal = cleanField(item.nombre_representante || item.representative || item.representante);
+  const motivoVal = cleanField(item.motivo_rechazo || item.motivo);
+  const resumenVal = cleanSummary(item.resumen || item.summary || '--');
   const sentimientoVal = item.sentimiento || item.sentiment || 'Positivo';
   const duracionVal = item.duracion_segundos || item.duracion || '38s';
   const scoreQaVal = item.score_qa || '100%';
@@ -603,7 +626,7 @@ function openDetailModal(callId) {
         </div>
         <div class="modal-card">
           <span class="modal-card-label">Desempeño Operativo</span>
-          <span class="modal-card-value" style="color: #60A5FA;">⏱️ ${duracionVal} | ${scoreQaVal} QA</span>
+          <span class="modal-card-value" style="color: #60A5FA;">⏱️ ${duracionVal} | ${scoreQaVal.includes('QA') ? scoreQaVal : scoreQaVal + ' QA'}</span>
         </div>
         <div class="modal-card">
           <span class="modal-card-label">Correo Registrado</span>

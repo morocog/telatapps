@@ -52,6 +52,17 @@ async function resyncAllReal() {
         const collectedData = analysis.data_collection_results || {};
         const metadata = detailData.metadata || {};
 
+        const getStr = (val) => {
+            if (!val) return "N/A";
+            if (typeof val === "object") return val.value || val.text || val.string || "N/A";
+            return String(val);
+        };
+
+        const correoVal = getStr(collectedData.correo_confirmado);
+        const repVal = getStr(collectedData.nombre_representante);
+        const motivoVal = getStr(collectedData.motivo_rechazo);
+        const statusVal = getStr(collectedData.estatus_asistencia);
+
         const transcriptRaw = detailData.transcript || [];
         const transcriptFormatted = Array.isArray(transcriptRaw) && transcriptRaw.length > 0 
             ? transcriptRaw.map(t => `${t.role === 'agent' ? 'Agente' : 'Ejecutivo'}: ${t.message || t.text || ''}`).join('\n')
@@ -69,7 +80,16 @@ async function resyncAllReal() {
             fecha: fechaStr,
             status: detailData.status || "done",
             agent_id: AGENT_ID,
-            data_collection_results: collectedData,
+            data_collection_results: {
+                estatus_asistencia: statusVal,
+                correo_confirmado: correoVal,
+                nombre_representante: repVal,
+                motivo_rechazo: motivoVal
+            },
+            estatus_asistencia: statusVal,
+            correo_confirmado: correoVal,
+            nombre_representante: repVal,
+            motivo_rechazo: motivoVal,
             transcript: transcriptRaw,
             transcripcion_completa: transcriptFormatted,
             sentimiento: analysis.sentiment || "Positivo",

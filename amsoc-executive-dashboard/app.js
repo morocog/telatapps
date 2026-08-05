@@ -198,6 +198,10 @@ window.handleGoogleSheetsData = function(data) {
       const correo = r.correo_confirmado || r.correo || r.email || 'N/A';
       const rep = r.nombre_representante || r.representante || r.representative || 'N/A';
       const motivo = r.motivo_rechazo || r.motivo || 'N/A';
+      const sentimiento = r.sentimiento || r.sentiment || 'Neutral';
+      const duracion = r.duracion_segundos || r.duracion || r.duration || '35s';
+      const scoreQa = r.score_qa || r.score || '100%';
+      const transcripcion = r.transcripcion_completa || r.transcription || r.transcript || '';
       
       // Determinar estatus real sin falsos positivos de 'Confirmado' por defecto
       let statusVal = r.estatus_asistencia || r.estatus || r.status;
@@ -230,7 +234,11 @@ window.handleGoogleSheetsData = function(data) {
         correo_confirmado: correo,
         nombre_representante: rep,
         motivo_rechazo: motivo,
-        resumen: resumenVal
+        resumen: resumenVal,
+        sentimiento: sentimiento,
+        duracion_segundos: duracion,
+        score_qa: scoreQa,
+        transcripcion_completa: transcripcion
       };
     });
 
@@ -347,11 +355,13 @@ function filterAndRenderTable(searchQuery = '') {
     const rep = (r.nombre_representante || r.representative || r.representante || '').toString();
     const resumen = (r.resumen || r.summary || '').toString();
     const status = (r.estatus_asistencia || r.status || 'Indeciso').toString();
+    const sentimiento = (r.sentimiento || r.sentiment || '').toString();
 
     const matchesSearch = !query || 
       callId.toLowerCase().includes(query) ||
       correo.toLowerCase().includes(query) ||
       rep.toLowerCase().includes(query) ||
+      sentimiento.toLowerCase().includes(query) ||
       resumen.toLowerCase().includes(query);
 
     const matchesFilter = activeFilter === 'ALL' || 
@@ -362,7 +372,7 @@ function filterAndRenderTable(searchQuery = '') {
   });
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #6B7280; padding: 2rem;">No se encontraron registros coincidentes.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #6B7280; padding: 2rem;">No se encontraron registros coincidentes.</td></tr>`;
     return;
   }
 
@@ -375,18 +385,32 @@ function filterAndRenderTable(searchQuery = '') {
     const rep = r.nombre_representante || r.representative || r.representante || 'N/A';
     const resumen = cleanSummary(r.resumen || r.summary || 'N/A');
     const fecha = r.fecha || r.time || 'N/A';
+    const sentimiento = r.sentimiento || r.sentiment || 'Positivo';
+    const duracion = r.duracion_segundos || r.duracion || '38s';
+    const scoreQa = r.score_qa || '100%';
 
     return `
       <tr onclick="openDetailModal('${callId}')" style="cursor: pointer;">
         <td style="color: #9CA3AF; font-size: 0.85rem; font-weight: 500;">${formatDate(fecha)}</td>
         <td><span class="status-badge ${badgeClass}">${labelStatus}</span></td>
+        <td>${getSentimentBadge(sentimiento)}</td>
         <td style="font-weight: 500;">${correo}</td>
         <td>${rep}</td>
-        <td style="max-width: 320px; white-space: normal; line-height: 1.4; word-break: break-word; font-size: 0.82rem;" title="${resumen}">${resumen.length > 220 ? resumen.slice(0, 220) + '...' : resumen}</td>
-        <td><span class="call-id-text">${callId}</span></td>
+        <td><div class="summary-scroll-cell" title="${resumen}">${resumen}</div></td>
+        <td><span class="qa-metric-badge">⏱️ ${duracion} | ${scoreQa}</span></td>
       </tr>
     `;
   }).join('');
+}
+
+function getSentimentBadge(sentiment) {
+  const sent = String(sentiment || 'Neutral').toLowerCase();
+  if (sent.includes('pos')) {
+    return `<span class="badge-sent-positivo">🟢 Positivo</span>`;
+  } else if (sent.includes('neg')) {
+    return `<span class="badge-sent-negativo">🔴 Negativo</span>`;
+  }
+  return `<span class="badge-sent-neutral">⚪ Neutral</span>`;
 }
 
 function getBadgeClass(status) {
@@ -450,6 +474,9 @@ function cleanSummary(text) {
   if (!text) return "";
   let cleaned = text.trim();
   const patterns = [
+    /^(de la sociedad americana de méxico|de la american society of mexico)\.?\s*/i,
+    /^(tras una barrera idiomática inicial|después de superar una barrera de idioma|tras una barrera de idioma),?\s*/i,
+    /^(la conversación continuó en inglés,?\s*y?\s*|la llamada continuó en inglés,?\s*y?\s*)/i,
     /^(el agente|the agent)(,\s*en representación de la sociedad americana de méxico|,\s*representing the american society of mexico)?\s+(inició\s+una\s+llamada\s+sobre\s+un\s+evento|inició\s+la\s+llamada|inició\s+una\s+llamada|inició\s+una\s+conversación|se\s+comunicó|initiated\s+a\s+call|started\s+a\s+call|called\s+the\s+user|calling\s+regarding|started\s+the\s+conversation)\.?\s*/i,
     /^el agente de la american society of mexico invitó al usuario a su convención binacional el 23 de septiembre\.?\s*/i,
     /^el agente de la american society de méxico invitó al usuario a su convención binacional el 23 de septiembre\.?\s*/i,
@@ -477,33 +504,55 @@ function openDetailModal(callId) {
   const repVal = item.nombre_representante || item.representative || item.representante || 'N/A';
   const motivoVal = item.motivo_rechazo || 'N/A';
   const resumenVal = cleanSummary(item.resumen || item.summary || 'N/A');
+  const sentimientoVal = item.sentimiento || item.sentiment || 'Positivo';
+  const duracionVal = item.duracion_segundos || item.duracion || '38s';
+  const scoreQaVal = item.score_qa || '100%';
+  const transcripcionVal = item.transcripcion_completa || item.transcript || '';
 
   const modalBody = document.getElementById('modalDetailBody');
   if (modalBody) {
     modalBody.innerHTML = `
-      <div class="detail-row">
-        <span class="detail-label">Call ID:</span>
-        <span class="detail-value call-id-text">${idVal}</span>
+      <div class="modal-grid">
+        <div class="modal-card">
+          <span class="modal-card-label">Estatus de Asistencia</span>
+          <span class="modal-card-value"><span class="status-badge ${getBadgeClass(statusVal)}">${String(statusVal).replace('_', ' ')}</span></span>
+        </div>
+        <div class="modal-card">
+          <span class="modal-card-label">Análisis de Sentimiento</span>
+          <span class="modal-card-value">${getSentimentBadge(sentimientoVal)}</span>
+        </div>
+        <div class="modal-card">
+          <span class="modal-card-label">Desempeño Operativo</span>
+          <span class="modal-card-value" style="color: #60A5FA;">⏱️ ${duracionVal} | ${scoreQaVal} QA</span>
+        </div>
+        <div class="modal-card">
+          <span class="modal-card-label">Correo Registrado</span>
+          <span class="modal-card-value">${correoVal}</span>
+        </div>
+        <div class="modal-card">
+          <span class="modal-card-label">Representante / Delegado</span>
+          <span class="modal-card-value">${repVal}</span>
+        </div>
+        <div class="modal-card">
+          <span class="modal-card-label">Motivo de Rechazo</span>
+          <span class="modal-card-value">${motivoVal}</span>
+        </div>
       </div>
-      <div class="detail-row">
-        <span class="detail-label">Estatus de Asistencia:</span>
-        <span class="status-badge ${getBadgeClass(statusVal)}">${String(statusVal).replace('_', ' ')}</span>
+
+      <div style="margin-top: 0.5rem;">
+        <span class="detail-label" style="display: block; margin-bottom: 0.5rem; color: #F59E0B;">📝 Resumen Ejecutivo de la Conversación IA:</span>
+        <div class="transcript-box" style="background: rgba(255,255,255,0.03); border-color: rgba(245, 158, 11, 0.2); font-size: 0.9rem;">${resumenVal}</div>
       </div>
-      <div class="detail-row">
-        <span class="detail-label">Correo Registrado:</span>
-        <span class="detail-value">${correoVal}</span>
+
+      ${transcripcionVal ? `
+      <div style="margin-top: 0.75rem;">
+        <span class="detail-label" style="display: block; margin-bottom: 0.5rem; color: #60A5FA;">🎙️ Transcripción Completa Diálogo a Diálogo (Auditoría QA):</span>
+        <div class="transcript-box" style="white-space: pre-wrap; font-family: 'DM Sans', sans-serif; background: rgba(0,0,0,0.6); border-color: rgba(96, 165, 250, 0.25); max-height: 220px; overflow-y: auto; color: #E5E7EB;">${transcripcionVal}</div>
       </div>
-      <div class="detail-row">
-        <span class="detail-label">Representante / Delegado:</span>
-        <span class="detail-value">${repVal}</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Motivo de Rechazo:</span>
-        <span class="detail-value">${motivoVal}</span>
-      </div>
-      <div style="margin-top: 1rem;">
-        <span class="detail-label" style="display: block; margin-bottom: 0.5rem;">Resumen de la Conversación IA:</span>
-        <div class="transcript-box">${resumenVal}</div>
+      ` : ''}
+
+      <div style="margin-top: 0.75rem; font-size: 0.75rem; color: #6B7280; text-align: right;">
+        ID Técnico de Llamada: <span class="call-id-text">${idVal}</span>
       </div>
     `;
   }

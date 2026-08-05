@@ -203,25 +203,28 @@ window.handleGoogleSheetsData = function(data) {
       }
 
       // 1. Correo Confirmado
-      let correo = r["Correo Confirmado"] || r.correo_confirmado || r.correo || r.email || "N/A";
-      if (correo === "N/A" && payloadObj.data_collection_results) {
+      let correoRaw = r["Correo Confirmado"] || r.correo_confirmado || r.correo || r.email || "N/A";
+      if (correoRaw === "N/A" && payloadObj.data_collection_results) {
         const cVal = payloadObj.data_collection_results.correo_confirmado;
-        correo = (cVal && (cVal.value || cVal)) || "N/A";
+        correoRaw = (cVal && (cVal.value || cVal)) || "N/A";
       }
+      const correo = String(correoRaw || "N/A").trim();
 
       // 2. Nombre Representante
-      let rep = r["Nombre Representante"] || r.nombre_representante || r.representante || "N/A";
-      if (rep === "N/A" && payloadObj.data_collection_results) {
+      let repRaw = r["Nombre Representante"] || r.nombre_representante || r.representante || "N/A";
+      if (repRaw === "N/A" && payloadObj.data_collection_results) {
         const rVal = payloadObj.data_collection_results.nombre_representante;
-        rep = (rVal && (rVal.value || rVal)) || "N/A";
+        repRaw = (rVal && (rVal.value || rVal)) || "N/A";
       }
+      const rep = String(repRaw || "N/A").trim();
 
       // 3. Motivo Rechazo
-      let motivo = r["Motivo Rechazo"] || r.motivo_rechazo || r.motivo || "N/A";
-      if (motivo === "N/A" && payloadObj.data_collection_results) {
+      let motivoRaw = r["Motivo Rechazo"] || r.motivo_rechazo || r.motivo || "N/A";
+      if (motivoRaw === "N/A" && payloadObj.data_collection_results) {
         const mVal = payloadObj.data_collection_results.motivo_rechazo;
-        motivo = (mVal && (mVal.value || mVal)) || "N/A";
+        motivoRaw = (mVal && (mVal.value || mVal)) || "N/A";
       }
+      const motivo = String(motivoRaw || "N/A").trim();
 
       // 4. Estatus Asistencia Real (no mas 'Sin Interacción' por defecto para llamadas confirmadas)
       let statusVal = r["Estatus Asistencia"] || r.estatus_asistencia || r.estatus || r.status;
@@ -232,11 +235,11 @@ window.handleGoogleSheetsData = function(data) {
       
       // Si aún no está clasificado, deducir con base en la evidencia real del registro
       if (!statusVal || statusVal === "N/A" || statusVal === "Sin Interacción" || statusVal === "Indeciso") {
-        if (correo && correo !== "N/A" && correo.includes("@")) {
+        if (correo !== "N/A" && correo.includes("@")) {
           statusVal = "Confirmado";
-        } else if (rep && rep !== "N/A") {
+        } else if (rep !== "N/A" && rep.length > 2) {
           statusVal = "Transfiere_Lugar";
-        } else if (motivo && motivo !== "N/A") {
+        } else if (motivo !== "N/A" && motivo.length > 2) {
           statusVal = "Rechazado";
         } else {
           statusVal = "Sin Interacción";
@@ -541,12 +544,15 @@ function cleanSummary(text) {
     /^(la conversación continuó en inglés,?\s*y?\s*|la llamada continuó en inglés,?\s*y?\s*)/i,
     /^(la conversación comenzó con una invitación a la convención binacional de la sociedad americana de méxico el 23 de septiembre|la conversación comenzó con una invitación a la convención binacional|la conversación comenzó con un agente invitando al usuario a la convención binacional|la conversación comenzó con|la llamada se realizó en|el agente inició la conversación identificándose|el agente inició una conversación)\.?\s*/i,
     /^(el agente|the agent)(,\s*en representación de la sociedad americana de méxico|,\s*representing the american society of mexico)?\s+(inició\s+una\s+llamada\s+sobre\s+un\s+evento|inició\s+la\s+llamada|inició\s+una\s+llamada|inició\s+una\s+conversación|se\s+comunicó|initiated\s+a\s+call|started\s+a\s+call|called\s+the\s+user|calling\s+regarding|started\s+the\s+conversation)\.?\s*/i,
+    /^el agente invitó al usuario a la convención binacional de la sociedad americana de méxico el 23 de septiembre\.?\s*/i,
+    /^el agente invitó al usuario a la convención binacional de la sociedad americana de méxico\.?\s*/i,
     /^el agente de la american society of mexico invitó al usuario a su convención binacional el 23 de septiembre\.?\s*/i,
     /^el agente de la american society de méxico invitó al usuario a su convención binacional el 23 de septiembre\.?\s*/i,
     /^the agent from the american society of mexico invited the user to their binational convention on september 23rd\.?\s*/i,
     /^the agent from the american society of mexico invited the user to the binational convention\.?\s*/i,
     /^the agent invited the user to the binational convention\.?\s*/i,
-    /^el agente invitó al usuario a la convención binacional\.?\s*/i
+    /^el agente invitó al usuario a la convención binacional\.?\s*/i,
+    /^aunque inicialmente dudó,?\s*/i
   ];
   
   let previous = "";
@@ -555,6 +561,11 @@ function cleanSummary(text) {
     for (const pattern of patterns) {
       cleaned = cleaned.replace(pattern, "").trim();
     }
+  }
+
+  // Si el texto incluye descripciones largas de relleno al final, recortar a la primera o segunda oración relevante
+  if (cleaned.includes("Posteriormente,")) {
+    cleaned = cleaned.split("Posteriormente,")[0].trim();
   }
 
   if (cleaned.length > 0) {

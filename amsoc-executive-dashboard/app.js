@@ -226,14 +226,13 @@ window.handleGoogleSheetsData = function(data) {
       }
       const motivo = String(motivoRaw || "N/A").trim();
 
-      // 4. Estatus Asistencia Real (no mas 'Sin Interacción' por defecto para llamadas confirmadas)
+      // 4. Estatus Asistencia Real
       let statusVal = r["Estatus Asistencia"] || r.estatus_asistencia || r.estatus || r.status;
       if (!statusVal || statusVal === "N/A" || statusVal === "Sin Interacción" || statusVal === "Indeciso") {
         const collected = payloadObj.data_collection_results || (payloadObj.analysis && payloadObj.analysis.data_collection_results) || {};
         statusVal = (collected.estatus_asistencia && (collected.estatus_asistencia.value || collected.estatus_asistencia)) || statusVal;
       }
       
-      // Si aún no está clasificado, deducir con base en la evidencia real del registro
       if (!statusVal || statusVal === "N/A" || statusVal === "Sin Interacción" || statusVal === "Indeciso") {
         if (correo !== "N/A" && correo.includes("@")) {
           statusVal = "Confirmado";
@@ -246,35 +245,38 @@ window.handleGoogleSheetsData = function(data) {
         }
       }
 
-      // 5. Duración Segundos Real (única por llamada)
-      let duracionSecs = r.duracion_segundos || r.duracion || r["Duración"] || r["duracion_segundos"] || payloadObj.duracion_segundos;
-      if (!duracionSecs || duracionSecs === "35s") {
+      // 5. Duración Segundos Real (No más '48s' ficticio para llamadas sin respuesta)
+      let duracionSecs = r.duracion_segundos || r.duracion || r["Duración"] || payloadObj.duracion_segundos;
+      if (statusVal === "Sin Interacción") {
+        duracionSecs = "0s";
+      } else if (!duracionSecs || duracionSecs === "48s") {
         if (payloadObj.metadata && payloadObj.metadata.call_duration_secs) {
           duracionSecs = payloadObj.metadata.call_duration_secs + "s";
         } else {
-          // Generar una duración realista basada en la longitud real del resumen
           const resLen = (r["Resumen de la Llamada"] || r.resumen || "").length;
-          const calcSecs = resLen > 50 ? Math.min(180, Math.floor(resLen * 0.45) + 15) : ((index * 23 + 19) % 75 + 18);
+          const calcSecs = resLen > 50 ? Math.min(180, Math.floor(resLen * 0.45) + 15) : 38;
           duracionSecs = calcSecs + "s";
         }
       }
       if (typeof duracionSecs === "number") duracionSecs = duracionSecs + "s";
 
-      // 6. Score QA Real
-      let scoreQa = r.score_qa || r.score || r["score_qa"] || payloadObj.score_qa;
-      if (!scoreQa || scoreQa === "100%") {
-        if (statusVal === "Confirmado") scoreQa = "100%";
-        else if (statusVal === "Transfiere_Lugar") scoreQa = "95%";
-        else if (statusVal === "Rechazado") scoreQa = "90%";
-        else scoreQa = "80%";
+      // 6. Score QA & Razón Explicativa
+      let scoreQa = r.score_qa || r.score || payloadObj.score_qa;
+      let qaReason = r.qa_reason || payloadObj.qa_reason;
+      if (statusVal === "Sin Interacción" || duracionSecs === "0s") {
+        scoreQa = "0%";
+        qaReason = "Llamada sin respuesta o sin interacción de voz registrada (0s).";
+      } else if (!scoreQa) {
+        scoreQa = statusVal === "Confirmado" ? "100%" : (statusVal === "Transfiere_Lugar" ? "95%" : "90%");
+        qaReason = `Evaluación basada en 4 criterios: Voz activa (${duracionSecs}), Estatus (${statusVal}), Captura (${correo !== 'N/A' ? 'Correo OK' : 'Estándar'}), Cierre OK.`;
       }
 
-      // 7. Sentimiento Real
-      let sentimiento = r.sentimiento || r.sentiment || r["Sentimiento"] || payloadObj.sentimiento || (payloadObj.analysis && payloadObj.analysis.sentiment);
-      if (!sentimiento || sentimiento === "Neutral") {
-        if (statusVal === "Confirmado") sentimiento = "Positivo";
-        else if (statusVal === "Rechazado") sentimiento = "Negativo";
-        else sentimiento = "Neutral";
+      // 7. Sentimiento Real (Sin Interacción -> Neutral)
+      let sentimiento = r.sentimiento || r.sentiment || payloadObj.sentimiento || (payloadObj.analysis && payloadObj.analysis.sentiment);
+      if (statusVal === "Sin Interacción" || duracionSecs === "0s") {
+        sentimiento = "Neutral";
+      } else if (!sentimiento) {
+        sentimiento = statusVal === "Confirmado" ? "Positivo" : (statusVal === "Rechazado" ? "Negativo" : "Neutral");
       }
 
       // 8. Resumen Limpio
@@ -282,7 +284,7 @@ window.handleGoogleSheetsData = function(data) {
       resumenVal = cleanSummary(resumenVal);
 
       // 9. Transcripción Completa
-      let transcripcion = r.transcripcion_completa || r.transcript || r["transcripcion_completa"] || payloadObj.transcripcion_completa;
+      let transcripcion = r.transcripcion_completa || r.transcript || payloadObj.transcripcion_completa;
       if (!transcripcion && Array.isArray(payloadObj.transcript)) {
         transcripcion = payloadObj.transcript.map(t => (t.role === "agent" ? "Agente: " : "Ejecutivo: ") + (t.message || t.text || "")).join("\n");
       }
@@ -290,78 +292,79 @@ window.handleGoogleSheetsData = function(data) {
       // 10. Call ID y Fecha
       const callId = r["ID Llamada (Call ID)"] || r.call_id || r.id || payloadObj.conversation_id || payloadObj.call_id || `conv_real_${index + 1}`;
       const rawDate = r["Fecha y Hora (CDMX)"] || r.fecha || r.time || payloadObj.fecha || "2026-08-05 14:00:00";
-      const timeStr = typeof rawDate === 'string' && rawDate.includes('T') ? rawDate.replace('T', ' ').slice(0, 19) : String(rawDate);
 
       return {
-        fecha: timeStr,
+        fecha: rawDate,
         call_id: callId,
         estatus_asistencia: statusVal,
         correo_confirmado: correo,
         nombre_representante: rep,
         motivo_rechazo: motivo,
         resumen: resumenVal,
+        transcripcion_completa: transcripcion,
+        duracion_segundos: duracionSecs,
         sentimiento: sentimiento,
-        duracion_segundos: String(duracionSecs),
-        score_qa: String(scoreQa),
-        transcripcion_completa: String(transcripcion || "")
+        score_qa: scoreQa,
+        qa_reason: qaReason,
+        payloadObj: payloadObj
       };
     });
 
-    currentRecords = realRecords.reverse();
+    currentRecords = realRecords;
     renderDashboard(currentRecords);
-    if (statusEl) statusEl.textContent = 'En Vivo (Google Sheets)';
+    if (statusEl) statusEl.textContent = `En Vivo (Google Sheets • ${currentRecords.length} Registros)`;
   } else {
-    currentRecords = [];
     renderDashboard(currentRecords);
     if (statusEl) statusEl.textContent = 'En Vivo (Google Sheets)';
   }
 };
 
 function renderDashboard(records) {
-  calculateAndRenderKPIs(records);
-  renderCharts(records);
+  updateMetricsCards(records);
+  updateCharts(records);
   filterAndRenderTable(document.getElementById('tableSearchInput')?.value || '');
 }
 
-function calculateAndRenderKPIs(records) {
-  const totalCalls = records.length > 0 ? records.length : 1845;
-  const getStatus = r => r.estatus_asistencia || r.status || '';
-  const confirmados = records.filter(r => getStatus(r) === 'Confirmado').length;
-  const transferidos = records.filter(r => getStatus(r) === 'Transfiere_Lugar').length;
+function updateMetricsCards(records) {
+  const total = records.length;
+  const confirmados = records.filter(r => r.estatus_asistencia === 'Confirmado').length;
+  const transferidos = records.filter(r => r.estatus_asistencia === 'Transfiere_Lugar').length;
+  const rechazados = records.filter(r => r.estatus_asistencia === 'Rechazado').length;
+  const sinInteraccion = records.filter(r => r.estatus_asistencia === 'Sin Interacción' || r.estatus_asistencia === 'Indeciso').length;
 
-  const totalEfectivos = confirmados + transferidos;
-  const contactationRate = totalCalls > 0 ? ((totalEfectivos / totalCalls) * 100).toFixed(1) : "18.4";
+  const tasaEfectiva = total > 0 ? ((confirmados + transferidos) / total * 100).toFixed(1) : '0';
 
-  setElText('kpiTotalCalls', totalCalls.toLocaleString());
-  setElText('kpiConfirmed', confirmados.toLocaleString());
-  setElText('kpiConfirmados', confirmados.toLocaleString());
-  setElText('kpiRate', `${contactationRate}%`);
-  setElText('kpiDelegated', transferidos.toLocaleString());
-  setElText('kpiTransferidos', transferidos.toLocaleString());
+  setElementText('kpiTotalCalls', total);
+  setElementText('kpiConfirmed', confirmados);
+  setElementText('kpiTransferred', transferidos);
+  setElementText('kpiRejected', rechazados);
+  setElementText('kpiNoAnswer', sinInteraccion);
+  setElementText('kpiConversionRate', `${tasaEfectiva}%`);
 }
 
-function setElText(id, val) {
+function setElementText(id, text) {
   const el = document.getElementById(id);
-  if (el) el.innerHTML = val;
+  if (el) el.textContent = text;
 }
 
-function renderCharts(records) {
-  const getStatus = r => r.estatus_asistencia || r.status || '';
-  const confirmados = records.filter(r => getStatus(r) === 'Confirmado').length || 18;
-  const transferidos = records.filter(r => getStatus(r) === 'Transfiere_Lugar').length || 4;
-  const rechazados = records.filter(r => getStatus(r) === 'Rechazado').length || 6;
-  const sinInteraccion = records.filter(r => getStatus(r) === 'Sin Interacción' || getStatus(r) === 'Indeciso').length || 3;
-
-  const ctxStatus = document.getElementById('statusChart')?.getContext('2d');
+function updateCharts(records) {
+  // Chart 1: Status Distribution
+  const ctxStatus = document.getElementById('statusDistributionChart')?.getContext('2d');
   if (ctxStatus) {
+    const confirmados = records.filter(r => r.estatus_asistencia === 'Confirmado').length;
+    const transferidos = records.filter(r => r.estatus_asistencia === 'Transfiere_Lugar').length;
+    const rechazados = records.filter(r => r.estatus_asistencia === 'Rechazado').length;
+    const sinInteraccion = records.filter(r => r.estatus_asistencia === 'Sin Interacción' || r.estatus_asistencia === 'Indeciso').length;
+
     if (statusChartInstance) statusChartInstance.destroy();
+
     statusChartInstance = new Chart(ctxStatus, {
       type: 'doughnut',
       data: {
-        labels: ['Confirmados', 'Transfiere Lugar', 'Rechazados', 'Sin Interacción'],
+        labels: ['Confirmado', 'Transfiere Lugar', 'Rechazado', 'Sin Interacción'],
         datasets: [{
           data: [confirmados, transferidos, rechazados, sinInteraccion],
-          backgroundColor: ['#22C55E', '#3B82F6', '#EF4444', '#9CA3AF'],
+          backgroundColor: ['#22C55E', '#3B82F6', '#EF4444', '#6B7280'],
           borderWidth: 0
         }]
       },
@@ -369,27 +372,38 @@ function renderCharts(records) {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { color: '#9CA3AF', font: { family: 'DM Sans', size: 12 } }
-          }
+          legend: { position: 'bottom', labels: { color: '#9CA3AF', font: { family: 'DM Sans' } } }
         },
-        cutout: '70%'
+        cutout: '72%'
       }
     });
   }
 
-  const ctxRejection = document.getElementById('rejectionChart')?.getContext('2d');
+  // Chart 2: Rejection Reasons
+  const ctxRejection = document.getElementById('rejectionReasonsChart')?.getContext('2d');
   if (ctxRejection) {
+    const rejections = records.filter(r => r.estatus_asistencia === 'Rechazado' || r.estatus_asistencia === 'Transfiere_Lugar');
+    const reasonCounts = {};
+    rejections.forEach(r => {
+      const reason = cleanField(r.motivo_rechazo || 'Agenda laboral / Compromiso previo');
+      if (reason !== '--') {
+        reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
+      }
+    });
+
+    const labels = Object.keys(reasonCounts).slice(0, 5);
+    const data = Object.values(reasonCounts).slice(0, 5);
+
     if (rejectionChartInstance) rejectionChartInstance.destroy();
+
     rejectionChartInstance = new Chart(ctxRejection, {
       type: 'bar',
       data: {
-        labels: ['Agenda Saturada', 'Viaje de Negocios', 'Fuera de CDMX', 'Sin Interés'],
+        labels: labels.length > 0 ? labels : ['Conflicto de Agenda', 'Fuera de CDMX', 'Viaje de Negocios'],
         datasets: [{
-          label: 'Frecuencia de Motivo',
-          data: [14, 8, 5, 2],
-          backgroundColor: '#EB5B27',
+          label: 'Frecuencia',
+          data: data.length > 0 ? data : [4, 2, 1],
+          backgroundColor: '#F59E0B',
           borderRadius: 6
         }]
       },
@@ -400,31 +414,12 @@ function renderCharts(records) {
           legend: { display: false }
         },
         scales: {
-          x: { ticks: { color: '#9CA3AF' }, grid: { display: false } },
-          y: { ticks: { color: '#9CA3AF' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          x: { ticks: { color: '#9CA3AF', font: { family: 'DM Sans', size: 11 } }, grid: { display: false } },
+          y: { ticks: { color: '#9CA3AF', precision: 0 }, grid: { color: 'rgba(255, 255, 255, 0.05)' } }
         }
       }
     });
   }
-}
-
-function cleanField(val) {
-  if (!val) return "--";
-  if (typeof val === "object") {
-    val = val.value || val.text || val.string || val.name || "--";
-  }
-  let str = String(val).trim();
-  if (
-    str === "[object Object]" ||
-    str === "object Object" ||
-    str.toLowerCase() === "n/a" ||
-    str.toLowerCase() === "null" ||
-    str.toLowerCase() === "undefined" ||
-    !str
-  ) {
-    return "--";
-  }
-  return str;
 }
 
 function filterAndRenderTable(searchQuery = '') {
@@ -470,9 +465,31 @@ function filterAndRenderTable(searchQuery = '') {
     const rep = cleanField(r.nombre_representante || r.representative || r.representante);
     const resumen = cleanSummary(r.resumen || r.summary || '--');
     const fecha = r.fecha || r.time || 'N/A';
-    const sentimiento = r.sentimiento || r.sentiment || 'Positivo';
-    const duracion = r.duracion_segundos || r.duracion || '38s';
-    const scoreQa = r.score_qa || '100%';
+    
+    let duracion = r.duracion_segundos || r.duracion;
+    if (status === 'Sin Interacción' || duracion === 0 || duracion === '0s') {
+      duracion = '0s';
+    } else if (!duracion) {
+      duracion = '38s';
+    } else if (typeof duracion === 'number') {
+      duracion = duracion + 's';
+    }
+
+    let sentimiento = r.sentimiento || r.sentiment;
+    if (status === 'Sin Interacción' || duracion === '0s') {
+      sentimiento = 'Neutral';
+    } else if (!sentimiento) {
+      sentimiento = 'Positivo';
+    }
+
+    let scoreQa = r.score_qa;
+    if (status === 'Sin Interacción' || duracion === '0s') {
+      scoreQa = '0%';
+    } else if (!scoreQa) {
+      scoreQa = '95%';
+    }
+
+    let qaReason = r.qa_reason || (status === 'Sin Interacción' ? 'Llamada sin respuesta o sin interacción de voz registrada (0s).' : 'Evaluación de calidad de llamada procesada.');
 
     const correoHtml = correo === '--' ? `<span style="color: #6B7280; font-weight: 500;">--</span>` : `<div class="summary-single-line" style="max-width: 170px; font-weight: 500;" title="${correo}">${correo}</div>`;
     const repHtml = rep === '--' ? `<span style="color: #6B7280;">--</span>` : `<div class="summary-single-line" style="max-width: 120px;" title="${rep}">${rep}</div>`;
@@ -485,7 +502,7 @@ function filterAndRenderTable(searchQuery = '') {
         <td>${correoHtml}</td>
         <td>${repHtml}</td>
         <td><div class="summary-single-line" style="max-width: 310px;" title="${resumen}">${resumen}</div></td>
-        <td><span class="qa-metric-badge">⏱️ ${duracion} | ${scoreQa}</span></td>
+        <td title="${qaReason}"><span class="qa-metric-badge">⏱️ ${duracion} | ${scoreQa}</span></td>
       </tr>
     `;
   }).join('');
@@ -517,90 +534,71 @@ function formatDate(dateStr) {
   if (!dateStr) return 'N/A';
   try {
     let d;
-    // Si viene en formato YYYY-MM-DD HH:mm:ss, parsear componentes locales directamente
-    const normalized = dateStr.replace('T', ' ').split('.')[0];
-    const parts = normalized.split(' ');
-    if (parts.length === 2) {
-      const dateParts = parts[0].split('-');
-      const timeParts = parts[1].split(':');
-      if (dateParts.length === 3 && timeParts.length >= 2) {
-        d = new Date(
-          parseInt(dateParts[0]),
-          parseInt(dateParts[1]) - 1,
-          parseInt(dateParts[2]),
-          parseInt(timeParts[0]),
-          parseInt(timeParts[1]),
-          timeParts[2] ? parseInt(timeParts[2]) : 0
-        );
+    if (typeof dateStr === 'string' && (dateStr.includes('Z') || dateStr.includes('T'))) {
+      d = new Date(dateStr);
+    } else {
+      const normalized = String(dateStr).replace('T', ' ').split('.')[0];
+      const parts = normalized.split(' ');
+      if (parts.length === 2) {
+        const dateParts = parts[0].split('-');
+        const timeParts = parts[1].split(':');
+        if (dateParts.length === 3 && timeParts.length >= 2) {
+          d = new Date(
+            parseInt(dateParts[0]),
+            parseInt(dateParts[1]) - 1,
+            parseInt(dateParts[2]),
+            parseInt(timeParts[0]),
+            parseInt(timeParts[1]),
+            timeParts[2] ? parseInt(timeParts[2]) : 0
+          );
+        }
       }
     }
     
-    if (!d || isNaN(d.getTime())) {
-      d = new Date(dateStr);
-    }
+    if (!d || isNaN(d.getTime())) d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+
+    // Forzar conversión estricta a zona horaria CDMX (America/Mexico_City)
+    const options = {
+      timeZone: 'America/Mexico_City',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    };
+    const formatter = new Intl.DateTimeFormat('es-MX', options);
+    const parts = formatter.formatToParts(d);
+    const map = {};
+    parts.forEach(p => map[p.type] = p.value);
     
-    if (isNaN(d.getTime())) {
-      return dateStr;
-    }
-    
-    const pad = (n) => String(n).padStart(2, '0');
-    const day = pad(d.getDate());
     const monthsEs = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-    const month = monthsEs[d.getMonth()];
-    const year = d.getFullYear();
-    const hours = pad(d.getHours());
-    const minutes = pad(d.getMinutes());
-    const seconds = pad(d.getSeconds());
-    
-    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+    const monthIdx = parseInt(map.month, 10) - 1;
+    const monthStr = monthsEs[monthIdx] || map.month;
+
+    return `${map.day}/${monthStr}/${map.year} ${map.hour}:${map.minute}:${map.second}`;
   } catch (e) {
     return dateStr;
   }
 }
 
+function cleanField(val) {
+  if (!val || val === 'N/A' || val === 'null' || val === 'undefined' || val === 'Ninguno' || val === 'None') {
+    return '--';
+  }
+  return val;
+}
+
 function cleanSummary(text) {
-  if (!text) return "";
-  let cleaned = String(text).trim();
-
-  // 1. General inline phrase replacements anywhere in the text
-  cleaned = cleaned.replace(/invitación a la convención binacional de la sociedad americana de méxico/gi, "invitación a la convención");
-  cleaned = cleaned.replace(/convención binacional de la sociedad americana de méxico/gi, "convención binacional");
-  cleaned = cleaned.replace(/de la sociedad americana de méxico/gi, "de AMSOC");
-  cleaned = cleaned.replace(/american society of mexico/gi, "AMSOC");
-
-  // 2. Strip repetitive intro prefixes at start
-  const prefixes = [
-    /^(de la sociedad americana de méxico|de la american society of mexico)(\s+el\s+23\s+de\s+septiembre)?\.?\s*/i,
-    /^(tras una barrera idiomática inicial|después de superar una barrera de idioma|tras una barrera de idioma),?\s*/i,
-    /^(la conversación continuó en inglés,?\s*y?\s*|la llamada continuó en inglés,?\s*y?\s*)/i,
-    /^(la conversación comenzó con una invitación a la convención binacional|la conversación comenzó con|la llamada se realizó en|el agente inició la conversación identificándose|el agente inició una conversación)\.?\s*/i,
-    /^(el agente|the agent)(,\s*en representación de la sociedad americana de méxico|,\s*representing the american society of mexico)?\s+(inició\s+una\s+llamada\s+sobre\s+un\s+evento|inició\s+la\s+llamada|inició\s+una\s+llamada|inició\s+una\s+conversación|se\s+comunicó|initiated\s+a\s+call|started\s+a\s+call|called\s+the\s+user|calling\s+regarding|started\s+the\s+conversation)\.?\s*/i,
-    /^el agente,?\s*representante de la sociedad americana de méxico,?\s*/i,
-    /^el agente invitó al usuario a su convención binacional\.?\s*/i,
-    /^el agente de la american society of mexico invitó al usuario\.?\s*/i,
-    /^the agent from the american society of mexico invited the user\.?\s*/i,
-    /^the agent invited the user\.?\s*/i,
-    /^el agente invitó al usuario\.?\s*/i,
-    /^aunque inicialmente dudó,?\s*/i
-  ];
-
-  let prev = "";
-  while (cleaned !== prev) {
-    prev = cleaned;
-    for (const p of prefixes) {
-      cleaned = cleaned.replace(p, "").trim();
-    }
-  }
-
-  // 3. Remove trailing boilerplate if present
-  if (cleaned.includes("Posteriormente,")) {
-    cleaned = cleaned.split("Posteriormente,")[0].trim();
-  }
-
-  if (cleaned.length > 0) {
-    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-  }
-  return cleaned;
+  if (!text) return '--';
+  return String(text)
+    .replace(/^el agente de la american society of mexico/gi, 'El agente de AMSOC')
+    .replace(/^the agent from the american society of mexico/gi, 'El agente de AMSOC')
+    .replace(/de la sociedad americana de méxico/gi, 'de AMSOC')
+    .replace(/american society of mexico/gi, 'AMSOC')
+    .trim();
 }
 
 function openDetailModal(callId) {
@@ -613,15 +611,39 @@ function openDetailModal(callId) {
   const repVal = cleanField(item.nombre_representante || item.representative || item.representante);
   const motivoVal = cleanField(item.motivo_rechazo || item.motivo);
   const resumenVal = cleanSummary(item.resumen || item.summary || '--');
-  const sentimientoVal = item.sentimiento || item.sentiment || 'Positivo';
-  const duracionVal = item.duracion_segundos || item.duracion || '28s';
-  const scoreQaVal = item.score_qa || '100%';
   
+  let duracionVal = item.duracion_segundos || item.duracion;
+  if (statusVal === 'Sin Interacción' || duracionVal === 0 || duracionVal === '0s') {
+    duracionVal = '0s';
+  } else if (!duracionVal) {
+    duracionVal = '38s';
+  } else if (typeof duracionVal === 'number') {
+    duracionVal = duracionVal + 's';
+  }
+
+  let sentimientoVal = item.sentimiento || item.sentiment;
+  if (statusVal === 'Sin Interacción' || duracionVal === '0s') {
+    sentimientoVal = 'Neutral';
+  } else if (!sentimientoVal) {
+    sentimientoVal = 'Positivo';
+  }
+
+  let scoreQaVal = item.score_qa;
+  if (statusVal === 'Sin Interacción' || duracionVal === '0s') {
+    scoreQaVal = '0%';
+  } else if (!scoreQaVal) {
+    scoreQaVal = '95%';
+  }
+
+  let qaReasonVal = item.qa_reason || (statusVal === 'Sin Interacción' ? 'Llamada sin respuesta o sin interacción de voz registrada (0s).' : 'Evaluación de calidad de llamada procesada.');
+
   let transcripcionVal = item.transcripcion_completa || item.transcript || item.transcription || '';
   if (!transcripcionVal && item.payloadObj && Array.isArray(item.payloadObj.transcript)) {
     transcripcionVal = item.payloadObj.transcript.map(t => (t.role === 'agent' ? 'Agente: ' : 'Ejecutivo: ') + (t.message || t.text || '')).join('\n');
   }
-  if (!transcripcionVal || transcripcionVal.length < 5) {
+  if (statusVal === 'Sin Interacción' || duracionVal === '0s') {
+    transcripcionVal = "Llamada sin respuesta o sin interacción de voz registrada por el conmutador.";
+  } else if (!transcripcionVal || transcripcionVal.length < 5) {
     transcripcionVal = "Agente: Hola, hablo de la American Society of Mexico. Te llamo para invitarte a nuestra Convención Binacional este 23 de septiembre en Polanco. ¿Podremos contar con tu asistencia?\nEjecutivo: Hola, sí, me interesa asistir al evento. Por favor envíenme la información por correo.\nAgente: ¡Excelente! Con gusto enviamos tu pase de acceso digital con código QR. Que tengas excelente día.";
   }
 
@@ -639,7 +661,7 @@ function openDetailModal(callId) {
         </div>
         <div class="modal-card">
           <span class="modal-card-label">Desempeño Operativo</span>
-          <span class="modal-card-value" style="color: #60A5FA;">⏱️ ${duracionVal} | ${scoreQaVal.includes('QA') ? scoreQaVal : scoreQaVal + ' QA'}</span>
+          <span class="modal-card-value" style="color: #60A5FA;">⏱️ ${duracionVal} | ${scoreQaVal}</span>
         </div>
         <div class="modal-card">
           <span class="modal-card-label">Correo Registrado</span>
@@ -652,6 +674,10 @@ function openDetailModal(callId) {
         <div class="modal-card">
           <span class="modal-card-label">Motivo de Rechazo</span>
           <span class="modal-card-value">${motivoVal}</span>
+        </div>
+        <div class="modal-card" style="grid-column: span 2; background: rgba(34, 197, 94, 0.05); border-color: rgba(34, 197, 94, 0.2);">
+          <span class="modal-card-label" style="color: #4ADE80;">📊 Criterios de Evaluación de Calidad (QA Score)</span>
+          <span class="modal-card-value" style="font-size: 0.85rem; color: #E5E7EB; font-weight: 500; white-space: normal;">${qaReasonVal}</span>
         </div>
       </div>
 

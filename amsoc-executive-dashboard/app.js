@@ -669,27 +669,6 @@ function openDetailModal(callId) {
         ID Técnico de Llamada: <span class="call-id-text">${idVal}</span>
       </div>
     `;
-  }de Rechazo</span>
-          <span class="modal-card-value">${motivoVal}</span>
-        </div>
-      </div>
-
-      <div style="margin-top: 0.5rem;">
-        <span class="detail-label" style="display: block; margin-bottom: 0.5rem; color: #F59E0B;">📝 Resumen Ejecutivo de la Conversación IA:</span>
-        <div class="transcript-box" style="background: rgba(255,255,255,0.03); border-color: rgba(245, 158, 11, 0.2); font-size: 0.9rem;">${resumenVal}</div>
-      </div>
-
-      ${transcripcionVal ? `
-      <div style="margin-top: 0.75rem;">
-        <span class="detail-label" style="display: block; margin-bottom: 0.5rem; color: #60A5FA;">🎙️ Transcripción Completa Diálogo a Diálogo (Auditoría QA):</span>
-        <div class="transcript-box" style="white-space: pre-wrap; font-family: 'DM Sans', sans-serif; background: rgba(0,0,0,0.6); border-color: rgba(96, 165, 250, 0.25); max-height: 220px; overflow-y: auto; color: #E5E7EB;">${transcripcionVal}</div>
-      </div>
-      ` : ''}
-
-      <div style="margin-top: 0.75rem; font-size: 0.75rem; color: #6B7280; text-align: right;">
-        ID Técnico de Llamada: <span class="call-id-text">${idVal}</span>
-      </div>
-    `;
   }
 
   const modalBackdrop = document.getElementById('detailModal');

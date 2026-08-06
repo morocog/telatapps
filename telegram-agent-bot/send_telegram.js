@@ -11,7 +11,7 @@ if (!token || !allowedChatId) {
 
 const args = process.argv.slice(2);
 let message = '';
-let buttonType = 'decision'; // default: decision buttons
+let buttonType = 'decision';
 
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--type' && args[i + 1]) {
@@ -29,38 +29,50 @@ if (!message) {
 
 const bot = new TelegramBot(token);
 
-let replyOptions = { parse_mode: 'Markdown' };
-
-if (buttonType === 'decision') {
-  replyOptions.reply_markup = {
-    inline_keyboard: [
-      [
-        { text: '✅ Aprobar y Continuar', callback_data: 'act_approve' },
-        { text: '❌ Cancelar / Pausar', callback_data: 'act_reject' }
-      ],
-      [
-        { text: '🚀 Ejecutar Git Push', callback_data: 'act_push' },
-        { text: '🔄 Ver Git Status', callback_data: 'act_status' }
+function getKeyboard(type) {
+  if (type === 'decision') {
+    return {
+      inline_keyboard: [
+        [
+          { text: '✅ Aprobar y Continuar', callback_data: 'act_approve' },
+          { text: '❌ Cancelar / Pausar', callback_data: 'act_reject' }
+        ],
+        [
+          { text: '🚀 Ejecutar Git Push', callback_data: 'act_push' },
+          { text: '🔄 Ver Git Status', callback_data: 'act_status' }
+        ]
       ]
-    ]
-  };
-} else if (buttonType === 'push') {
-  replyOptions.reply_markup = {
-    inline_keyboard: [
-      [
-        { text: '🚀 Hacer Git Push Ahora', callback_data: 'act_push' },
-        { text: '📊 Ver Proyectos', callback_data: 'act_projects' }
+    };
+  } else if (type === 'push') {
+    return {
+      inline_keyboard: [
+        [
+          { text: '🚀 Hacer Git Push Ahora', callback_data: 'act_push' },
+          { text: '📊 Ver Proyectos', callback_data: 'act_projects' }
+        ]
       ]
-    ]
-  };
+    };
+  }
+  return undefined;
 }
 
-bot.sendMessage(allowedChatId, message, replyOptions)
+const keyboard = getKeyboard(buttonType);
+
+// Intentar enviar con Markdown, si falla por caracteres especiales, reintentar en modo texto plano
+bot.sendMessage(allowedChatId, message, { parse_mode: 'Markdown', reply_markup: keyboard })
   .then(() => {
-    console.log('✅ Notificación con botones enviada a Telegram con éxito.');
+    console.log('✅ Notificación enviada con éxito.');
     process.exit(0);
   })
-  .catch((err) => {
-    console.error('❌ Error al enviar notificación:', err.message);
-    process.exit(1);
+  .catch(() => {
+    // Fallback robusto sin parse_mode para asegurar la entrega del mensaje
+    bot.sendMessage(allowedChatId, message, { reply_markup: keyboard })
+      .then(() => {
+        console.log('✅ Notificación enviada con éxito (Modo Fallback).');
+        process.exit(0);
+      })
+      .catch((err2) => {
+        console.error('❌ Error crítico al enviar notificación:', err2.message);
+        process.exit(1);
+      });
   });

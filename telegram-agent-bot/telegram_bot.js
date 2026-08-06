@@ -15,13 +15,12 @@ if (!token || !allowedChatId) {
 const bot = new TelegramBot(token, { polling: true });
 const WORKSPACE_DIR = path.resolve(__dirname, '..');
 
-console.log('🚀 Telegram Agent Bot iniciado correctamente...');
+console.log('🚀 Telegram Agent Bot (con Botones Interactivos) iniciado...');
 console.log(`🔒 Modo seguro activo. Permitido solo para Chat ID: ${allowedChatId}`);
 
 // Middleware de autorización
-function isAuthorized(msg) {
-  const chatId = msg.chat.id.toString();
-  if (chatId !== allowedChatId.toString()) {
+function isAuthorized(chatId) {
+  if (chatId.toString() !== allowedChatId.toString()) {
     console.warn(`⚠️ Intento no autorizado desde Chat ID: ${chatId}`);
     bot.sendMessage(chatId, '⛔ *Acceso Denegado*. Este bot está configurado en modo privado de seguridad.', { parse_mode: 'Markdown' });
     return false;
@@ -29,7 +28,7 @@ function isAuthorized(msg) {
   return true;
 }
 
-// Menú principal con teclado
+// Menú permanente
 const mainKeyboard = {
   reply_markup: {
     keyboard: [
@@ -43,23 +42,55 @@ const mainKeyboard = {
 
 // Comando /start o /help
 bot.onText(/\/(start|help)/, (msg) => {
-  if (!isAuthorized(msg)) return;
+  if (!isAuthorized(msg.chat.id)) return;
 
-  const welcomeText = `🤖 *Bienvenido a tu Antigravity Agent Bot*\n\n` +
-    `Estoy conectado con tu entorno de desarrollo en \`${WORKSPACE_DIR}\`.\n\n` +
-    `*Comandos disponibles:*\n` +
-    `• /status - Ver estado general de los proyectos\n` +
-    `• /git - Ver estado de repositorios Git\n` +
-    `• /cmd <comando> - Ejecutar comando de consola (ej. \`/cmd git status\`)\n` +
-    `• /push - Hacer git push en proyectos activos\n\n` +
-    `O usa los botones del menú desplegable abajo 👇`;
+  const welcomeText = `🤖 *Antigravity Agent Bot con Botones Interactivos*\n\n` +
+    `Estoy listo para recibir tus decisiones sin que tengas que escribir comandos.\n\n` +
+    `*Comandos y Botones Disponibles:*\n` +
+    `• Toca los botones abajo para acciones rápidas\n` +
+    `• Cada notificación vendrá con sus propios botones de **Aprobar / Cancelar / Push**\n` +
+    `• También puedes usar \`/cmd <comando>\` si lo necesitas.`;
 
   bot.sendMessage(msg.chat.id, welcomeText, { parse_mode: 'Markdown', ...mainKeyboard });
 });
 
-// Manejo de mensajes de texto / botones
+// Manejo de clicks en Botones de Notificación (Inline Keyboards)
+bot.on('callback_query', (query) => {
+  const chatId = query.message.chat.id;
+  if (!isAuthorized(chatId)) return;
+
+  const action = query.data;
+  bot.answerCallbackQuery(query.id, { text: '¡Procesando acción en tu equipo!' });
+
+  if (action === 'act_approve') {
+    bot.editMessageText(`✅ *APROBADO DESDE TELEGRAM*\n\nAcción autorizada exitosamente. El trabajo continúa en tu equipo.`, {
+      chat_id: chatId,
+      message_id: query.message.message_id,
+      parse_mode: 'Markdown'
+    });
+  } else if (action === 'act_reject') {
+    bot.editMessageText(`❌ *CANCELADO / PAUSADO DESDE TELEGRAM*\n\nSe ha recibido la orden de detener el proceso.`, {
+      chat_id: chatId,
+      message_id: query.message.message_id,
+      parse_mode: 'Markdown'
+    });
+  } else if (action === 'act_push') {
+    bot.editMessageText(`⏳ *EJECUTANDO GIT PUSH DESDE TELEGRAM...*`, {
+      chat_id: chatId,
+      message_id: query.message.message_id,
+      parse_mode: 'Markdown'
+    });
+    executeGitPush(chatId);
+  } else if (action === 'act_status') {
+    getGitStatus(chatId);
+  } else if (action === 'act_projects') {
+    getProjectsStatus(chatId);
+  }
+});
+
+// Manejo de mensajes de texto / botones del teclado principal
 bot.on('message', (msg) => {
-  if (!isAuthorized(msg)) return;
+  if (!isAuthorized(msg.chat.id)) return;
   if (!msg.text || msg.text.startsWith('/')) return;
 
   const text = msg.text.trim();
@@ -71,41 +102,53 @@ bot.on('message', (msg) => {
   } else if (text === '⚡ Ejecutar Git Push') {
     executeGitPush(msg.chat.id);
   } else if (text === '❓ Ayuda') {
-    bot.sendMessage(msg.chat.id, 'Puedes escribirme comandos directamente o seleccionar una de las opciones del menú.', mainKeyboard);
+    bot.sendMessage(msg.chat.id, 'Selecciona una de las opciones del menú o presiona los botones de la última notificación.', mainKeyboard);
   } else {
-    // Respuesta por defecto para texto libre
+    // Si el usuario escribe texto libre, le ofrecemos botones interactivos en lugar de obligarlo a usar la sintaxis /cmd
     bot.sendMessage(
       msg.chat.id,
-      `📩 *Mensaje recibido:* "${text}"\n\nSi deseas ejecutar una orden en la consola, usa: \`/cmd ${text}\``,
-      { parse_mode: 'Markdown', ...mainKeyboard }
+      `📩 *Instrucción recibida:* "${text}"\n\n¿Qué deseas hacer con esta indicación?`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '▶️ Ejecutar como comando', callback_data: `act_cmd_${text}` },
+              { text: '📊 Ver Estado', callback_data: 'act_status' }
+            ]
+          ]
+        }
+      }
     );
   }
 });
 
 // Comando /status
 bot.onText(/\/status/, (msg) => {
-  if (!isAuthorized(msg)) return;
+  if (!isAuthorized(msg.chat.id)) return;
   getProjectsStatus(msg.chat.id);
 });
 
 // Comando /git
 bot.onText(/\/git/, (msg) => {
-  if (!isAuthorized(msg)) return;
+  if (!isAuthorized(msg.chat.id)) return;
   getGitStatus(msg.chat.id);
 });
 
 // Comando /push
 bot.onText(/\/push/, (msg) => {
-  if (!isAuthorized(msg)) return;
+  if (!isAuthorized(msg.chat.id)) return;
   executeGitPush(msg.chat.id);
 });
 
 // Comando /cmd <comando>
 bot.onText(/\/cmd (.+)/, (msg, match) => {
-  if (!isAuthorized(msg)) return;
-  const command = match[1];
+  if (!isAuthorized(msg.chat.id)) return;
+  runSystemCommand(msg.chat.id, match[1]);
+});
 
-  bot.sendMessage(msg.chat.id, `⏳ *Ejecutando:* \`${command}\`...`, { parse_mode: 'Markdown' });
+function runSystemCommand(chatId, command) {
+  bot.sendMessage(chatId, `⏳ *Ejecutando:* \`${command}\`...`, { parse_mode: 'Markdown' });
 
   exec(command, { cwd: WORKSPACE_DIR }, (error, stdout, stderr) => {
     let output = '';
@@ -115,14 +158,13 @@ bot.onText(/\/cmd (.+)/, (msg, match) => {
 
     if (!output.trim()) output = '✅ Comando ejecutado sin salida.';
 
-    // Truncar si excede límite de Telegram (4000 chars)
     if (output.length > 3500) {
       output = output.substring(0, 3500) + '\n... (salida truncada)';
     }
 
-    bot.sendMessage(msg.chat.id, `💻 *Resultado:* \n\`\`\`\n${output}\n\`\`\``, { parse_mode: 'Markdown' });
+    bot.sendMessage(chatId, `💻 *Resultado:* \n\`\`\`\n${output}\n\`\`\``, { parse_mode: 'Markdown' });
   });
-});
+}
 
 // Función auxiliar: Estado de proyectos
 function getProjectsStatus(chatId) {
@@ -135,7 +177,14 @@ function getProjectsStatus(chatId) {
       report += `• \`${d}\`\n`;
     });
 
-    bot.sendMessage(chatId, report, { parse_mode: 'Markdown' });
+    bot.sendMessage(chatId, report, {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🔄 Ver Git Status', callback_data: 'act_status' }, { text: '🚀 Git Push', callback_data: 'act_push' }]
+        ]
+      }
+    });
   } catch (err) {
     bot.sendMessage(chatId, `❌ Error al leer proyectos: ${err.message}`);
   }
@@ -160,7 +209,14 @@ function getGitStatus(chatId) {
 
         completed++;
         if (completed === targetRepos.length) {
-          bot.sendMessage(chatId, statusReport, { parse_mode: 'Markdown' });
+          bot.sendMessage(chatId, statusReport, {
+            parse_mode: 'Markdown',
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: '🚀 Subir Cambios (Git Push)', callback_data: 'act_push' }]
+              ]
+            }
+          });
         }
       });
     } else {
@@ -175,10 +231,17 @@ function getGitStatus(chatId) {
 // Función auxiliar: Git push
 function executeGitPush(chatId) {
   bot.sendMessage(chatId, `⏳ *Haciendo backup y Git Push a GitHub...*`, { parse_mode: 'Markdown' });
-  
+
   const targetRepo = path.join(WORKSPACE_DIR, 'telatapps');
   exec('git add . && git commit -m "update: automated commit via telegram bot" && git push', { cwd: targetRepo }, (error, stdout, stderr) => {
     let result = stdout || stderr || 'Sin cambios para subir.';
-    bot.sendMessage(chatId, `🚀 *Resultado Push (telatapps):*\n\`\`\`\n${result}\n\`\`\``, { parse_mode: 'Markdown' });
+    bot.sendMessage(chatId, `🚀 *Resultado Push (telatapps):*\n\`\`\`\n${result}\n\`\`\``, {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '📊 Ver Proyectos', callback_data: 'act_projects' }]
+        ]
+      }
+    });
   });
 }

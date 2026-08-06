@@ -117,7 +117,7 @@ async function provisionAgent(webhookUrl = DEFAULT_WEBHOOK) {
                 language: "en"
             },
             tts: {
-                voice_id: "JBFqnCBsd6RMkjVDRZzb" // Rachel (Warm and professional voice)
+                voice_id: "D9Thk1W7FRMgiOhy3zVI" // Voz actualizada (Wine Country Gift Consultant)
             }
         },
         platform_settings: {

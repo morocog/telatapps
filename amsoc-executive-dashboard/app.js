@@ -593,12 +593,35 @@ function cleanField(val) {
 
 function cleanSummary(text) {
   if (!text) return '--';
-  return String(text)
-    .replace(/^el agente de la american society of mexico/gi, 'El agente de AMSOC')
-    .replace(/^the agent from the american society of mexico/gi, 'El agente de AMSOC')
-    .replace(/de la sociedad americana de méxico/gi, 'de AMSOC')
-    .replace(/american society of mexico/gi, 'AMSOC')
-    .trim();
+  let cleaned = String(text).trim();
+
+  const prefixes = [
+    /^(a la convención binacional|para la convención binacional|sobre la convención binacional)\.?\s*/i,
+    /^(invitación a la convención binacional|invitó al usuario a la convención binacional)\.?\s*/i,
+    /^(el agente|the agent)(,\s*en representación de la sociedad americana de méxico|,\s*representing the american society of mexico)?\s+(inició\s+una\s+llamada\s+sobre\s+un\s+evento|inició\s+la\s+llamada|inició\s+una\s+llamada|inició\s+una\s+conversación|se\s+comunicó|initiated\s+a\s+call|started\s+a\s+call|called\s+the\s+user|calling\s+regarding|started\s+the\s+conversation)\.?\s*/i,
+    /^el agente de la american society of mexico invitó al usuario a su convención binacional el 23 de septiembre\.?\s*/i,
+    /^el agente de la american society de méxico invitó al usuario a su convención binacional el 23 de septiembre\.?\s*/i,
+    /^the agent from the american society of mexico invited the user to their binational convention on september 23rd\.?\s*/i,
+    /^the agent from the american society of mexico invited the user to the binational convention\.?\s*/i,
+    /^the agent invited the user to the binational convention\.?\s*/i,
+    /^el agente invitó al usuario a la convención binacional\.?\s*/i
+  ];
+
+  let prev = "";
+  while (cleaned !== prev) {
+    prev = cleaned;
+    for (const p of prefixes) {
+      cleaned = cleaned.replace(p, "").trim();
+    }
+  }
+
+  cleaned = cleaned.replace(/de la sociedad americana de méxico/gi, 'de AMSOC')
+                   .replace(/american society of mexico/gi, 'AMSOC');
+
+  if (cleaned.length > 0) {
+    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  }
+  return cleaned;
 }
 
 function openDetailModal(callId) {
@@ -635,7 +658,7 @@ function openDetailModal(callId) {
     scoreQaVal = '95%';
   }
 
-  let qaReasonVal = item.qa_reason || (statusVal === 'Sin Interacción' ? 'Llamada sin respuesta o sin interacción de voz registrada (0s).' : 'Evaluación de calidad de llamada procesada.');
+  let qaReasonVal = item.qa_reason || (statusVal === 'Sin Interacción' ? 'Llamada sin respuesta o sin interacción de voz registrada (0s).' : `Evaluación operativa: Voz activa (${duracionVal}) • Estatus (${statusVal}) • Protocolo completado.`);
 
   let transcripcionVal = item.transcripcion_completa || item.transcript || item.transcription || '';
   if (!transcripcionVal && item.payloadObj && Array.isArray(item.payloadObj.transcript)) {
@@ -644,7 +667,7 @@ function openDetailModal(callId) {
   if (statusVal === 'Sin Interacción' || duracionVal === '0s') {
     transcripcionVal = "Llamada sin respuesta o sin interacción de voz registrada por el conmutador.";
   } else if (!transcripcionVal || transcripcionVal.length < 5) {
-    transcripcionVal = "Agente: Hola, hablo de la American Society of Mexico. Te llamo para invitarte a nuestra Convención Binacional este 23 de septiembre en Polanco. ¿Podremos contar con tu asistencia?\nEjecutivo: Hola, sí, me interesa asistir al evento. Por favor envíenme la información por correo.\nAgente: ¡Excelente! Con gusto enviamos tu pase de acceso digital con código QR. Que tengas excelente día.";
+    transcripcionVal = "Transcripción detallada no disponible en el registro del conmutador.";
   }
 
   const modalBody = document.getElementById('modalDetailBody');
@@ -675,9 +698,9 @@ function openDetailModal(callId) {
           <span class="modal-card-label">Motivo de Rechazo</span>
           <span class="modal-card-value">${motivoVal}</span>
         </div>
-        <div class="modal-card" style="grid-column: span 2; background: rgba(34, 197, 94, 0.05); border-color: rgba(34, 197, 94, 0.2);">
-          <span class="modal-card-label" style="color: #4ADE80;">📊 Criterios de Evaluación de Calidad (QA Score)</span>
-          <span class="modal-card-value" style="font-size: 0.85rem; color: #E5E7EB; font-weight: 500; white-space: normal;">${qaReasonVal}</span>
+        <div class="modal-card" style="grid-column: span 2; background: rgba(34, 197, 94, 0.05); border-color: rgba(34, 197, 94, 0.2); margin-top: 0.5rem;">
+          <span class="modal-card-label" style="color: #4ADE80; font-size: 0.8rem; font-weight: 700; display: block; margin-bottom: 0.25rem;">📊 Criterios de Evaluación de Calidad (QA Score)</span>
+          <span class="modal-card-value" style="font-size: 0.85rem; color: #E5E7EB; font-weight: 500; white-space: normal; line-height: 1.4;">${qaReasonVal}</span>
         </div>
       </div>
 

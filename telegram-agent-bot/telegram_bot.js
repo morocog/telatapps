@@ -14,8 +14,9 @@ if (!token || !allowedChatId) {
 
 const bot = new TelegramBot(token, { polling: true });
 const WORKSPACE_DIR = path.resolve(__dirname, '..');
+const QUEUE_FILE = path.join(__dirname, 'notify_queue.json');
 
-console.log('🚀 Telegram Agent Bot (con Botones Interactivos) iniciado...');
+console.log('🚀 Telegram Agent Bot (con Cola Silenciosa sin Popups) iniciado...');
 console.log(`🔒 Modo seguro activo. Permitido solo para Chat ID: ${allowedChatId}`);
 
 // Middleware de autorización
@@ -27,6 +28,66 @@ function isAuthorized(chatId) {
   }
   return true;
 }
+
+// Función para enviar payloads con botones
+function sendNotificationPayload(payload) {
+  const message = payload.message;
+  const type = payload.type || 'decision';
+  
+  let keyboard = undefined;
+  if (type === 'decision') {
+    keyboard = {
+      inline_keyboard: [
+        [
+          { text: '✅ Aprobar y Continuar', callback_data: 'act_approve' },
+          { text: '❌ Cancelar / Pausar', callback_data: 'act_reject' }
+        ],
+        [
+          { text: '🚀 Ejecutar Git Push', callback_data: 'act_push' },
+          { text: '🔄 Ver Git Status', callback_data: 'act_status' }
+        ]
+      ]
+    };
+  } else if (type === 'push') {
+    keyboard = {
+      inline_keyboard: [
+        [
+          { text: '🚀 Hacer Git Push Ahora', callback_data: 'act_push' },
+          { text: '📊 Ver Proyectos', callback_data: 'act_projects' }
+        ]
+      ]
+    };
+  }
+
+  bot.sendMessage(allowedChatId, message, { parse_mode: 'Markdown', reply_markup: keyboard })
+    .then(() => {
+      console.log('✅ Notificación enviada desde cola silenciosa.');
+    })
+    .catch(() => {
+      // Fallback sin Markdown si contiene caracteres especiales
+      bot.sendMessage(allowedChatId, message, { reply_markup: keyboard })
+        .then(() => console.log('✅ Notificación enviada desde cola silenciosa (Fallback).'))
+        .catch((err) => console.error('❌ Error enviando desde cola:', err.message));
+    });
+}
+
+// Watcher continuo para procesar notificaciones escritas mediante archivos (CERO POPUPS DE CONSOLA)
+setInterval(() => {
+  if (fs.existsSync(QUEUE_FILE)) {
+    try {
+      const content = fs.readFileSync(QUEUE_FILE, 'utf8');
+      if (content.trim()) {
+        fs.unlinkSync(QUEUE_FILE); // Borrado atómico para evitar duplicados
+        const payload = JSON.parse(content);
+        if (payload && payload.message) {
+          sendNotificationPayload(payload);
+        }
+      }
+    } catch (err) {
+      // Si el archivo está siendo escrito en ese instante, reintentar en el siguiente ciclo
+    }
+  }
+}, 500);
 
 // Menú permanente
 const mainKeyboard = {
@@ -44,12 +105,9 @@ const mainKeyboard = {
 bot.onText(/\/(start|help)/, (msg) => {
   if (!isAuthorized(msg.chat.id)) return;
 
-  const welcomeText = `🤖 *Antigravity Agent Bot con Botones Interactivos*\n\n` +
-    `Estoy listo para recibir tus decisiones sin que tengas que escribir comandos.\n\n` +
-    `*Comandos y Botones Disponibles:*\n` +
-    `• Toca los botones abajo para acciones rápidas\n` +
-    `• Cada notificación vendrá con sus propios botones de **Aprobar / Cancelar / Push**\n` +
-    `• También puedes usar \`/cmd <comando>\` si lo necesitas.`;
+  const welcomeText = `🤖 *Antigravity Agent Bot (Modo Silencioso Sin Popups)*\n\n` +
+    `Estoy conectado con tu entorno de desarrollo en \`${WORKSPACE_DIR}\`.\n\n` +
+    `Cualquier notificación o decisión te llegará automáticamente a Telegram sin interrumpir ni pedir permisos en la pantalla de la PC.`;
 
   bot.sendMessage(msg.chat.id, welcomeText, { parse_mode: 'Markdown', ...mainKeyboard });
 });
@@ -104,7 +162,6 @@ bot.on('message', (msg) => {
   } else if (text === '❓ Ayuda') {
     bot.sendMessage(msg.chat.id, 'Selecciona una de las opciones del menú o presiona los botones de la última notificación.', mainKeyboard);
   } else {
-    // Si el usuario escribe texto libre, le ofrecemos botones interactivos en lugar de obligarlo a usar la sintaxis /cmd
     bot.sendMessage(
       msg.chat.id,
       `📩 *Instrucción recibida:* "${text}"\n\n¿Qué deseas hacer con esta indicación?`,

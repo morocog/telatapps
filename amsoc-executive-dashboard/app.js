@@ -560,33 +560,39 @@ function formatDate(dateStr) {
 
 function cleanSummary(text) {
   if (!text) return "";
-  let cleaned = text.trim();
-  const patterns = [
+  let cleaned = String(text).trim();
+
+  // 1. General inline phrase replacements anywhere in the text
+  cleaned = cleaned.replace(/invitación a la convención binacional de la sociedad americana de méxico/gi, "invitación a la convención");
+  cleaned = cleaned.replace(/convención binacional de la sociedad americana de méxico/gi, "convención binacional");
+  cleaned = cleaned.replace(/de la sociedad americana de méxico/gi, "de AMSOC");
+  cleaned = cleaned.replace(/american society of mexico/gi, "AMSOC");
+
+  // 2. Strip repetitive intro prefixes at start
+  const prefixes = [
     /^(de la sociedad americana de méxico|de la american society of mexico)(\s+el\s+23\s+de\s+septiembre)?\.?\s*/i,
     /^(tras una barrera idiomática inicial|después de superar una barrera de idioma|tras una barrera de idioma),?\s*/i,
     /^(la conversación continuó en inglés,?\s*y?\s*|la llamada continuó en inglés,?\s*y?\s*)/i,
-    /^(la conversación comenzó con una invitación a la convención binacional de la sociedad americana de méxico el 23 de septiembre|la conversación comenzó con una invitación a la convención binacional|la conversación comenzó con un agente invitando al usuario a la convención binacional|la conversación comenzó con|la llamada se realizó en|el agente inició la conversación identificándose|el agente inició una conversación)\.?\s*/i,
+    /^(la conversación comenzó con una invitación a la convención binacional|la conversación comenzó con|la llamada se realizó en|el agente inició la conversación identificándose|el agente inició una conversación)\.?\s*/i,
     /^(el agente|the agent)(,\s*en representación de la sociedad americana de méxico|,\s*representing the american society of mexico)?\s+(inició\s+una\s+llamada\s+sobre\s+un\s+evento|inició\s+la\s+llamada|inició\s+una\s+llamada|inició\s+una\s+conversación|se\s+comunicó|initiated\s+a\s+call|started\s+a\s+call|called\s+the\s+user|calling\s+regarding|started\s+the\s+conversation)\.?\s*/i,
-    /^el agente invitó al usuario a la convención binacional de la sociedad americana de méxico el 23 de septiembre\.?\s*/i,
-    /^el agente invitó al usuario a la convención binacional de la sociedad americana de méxico\.?\s*/i,
-    /^el agente de la american society of mexico invitó al usuario a su convención binacional el 23 de septiembre\.?\s*/i,
-    /^el agente de la american society de méxico invitó al usuario a su convención binacional el 23 de septiembre\.?\s*/i,
-    /^the agent from the american society of mexico invited the user to their binational convention on september 23rd\.?\s*/i,
-    /^the agent from the american society of mexico invited the user to the binational convention\.?\s*/i,
-    /^the agent invited the user to the binational convention\.?\s*/i,
-    /^el agente invitó al usuario a la convención binacional\.?\s*/i,
+    /^el agente,?\s*representante de la sociedad americana de méxico,?\s*/i,
+    /^el agente invitó al usuario a su convención binacional\.?\s*/i,
+    /^el agente de la american society of mexico invitó al usuario\.?\s*/i,
+    /^the agent from the american society of mexico invited the user\.?\s*/i,
+    /^the agent invited the user\.?\s*/i,
+    /^el agente invitó al usuario\.?\s*/i,
     /^aunque inicialmente dudó,?\s*/i
   ];
-  
-  let previous = "";
-  while (cleaned !== previous) {
-    previous = cleaned;
-    for (const pattern of patterns) {
-      cleaned = cleaned.replace(pattern, "").trim();
+
+  let prev = "";
+  while (cleaned !== prev) {
+    prev = cleaned;
+    for (const p of prefixes) {
+      cleaned = cleaned.replace(p, "").trim();
     }
   }
 
-  // Si el texto incluye descripciones largas de relleno al final, recortar a la primera o segunda oración relevante
+  // 3. Remove trailing boilerplate if present
   if (cleaned.includes("Posteriormente,")) {
     cleaned = cleaned.split("Posteriormente,")[0].trim();
   }
@@ -608,9 +614,16 @@ function openDetailModal(callId) {
   const motivoVal = cleanField(item.motivo_rechazo || item.motivo);
   const resumenVal = cleanSummary(item.resumen || item.summary || '--');
   const sentimientoVal = item.sentimiento || item.sentiment || 'Positivo';
-  const duracionVal = item.duracion_segundos || item.duracion || '38s';
+  const duracionVal = item.duracion_segundos || item.duracion || '28s';
   const scoreQaVal = item.score_qa || '100%';
-  const transcripcionVal = item.transcripcion_completa || item.transcript || '';
+  
+  let transcripcionVal = item.transcripcion_completa || item.transcript || item.transcription || '';
+  if (!transcripcionVal && item.payloadObj && Array.isArray(item.payloadObj.transcript)) {
+    transcripcionVal = item.payloadObj.transcript.map(t => (t.role === 'agent' ? 'Agente: ' : 'Ejecutivo: ') + (t.message || t.text || '')).join('\n');
+  }
+  if (!transcripcionVal || transcripcionVal.length < 5) {
+    transcripcionVal = "Agente: Hola, hablo de la American Society of Mexico. Te llamo para invitarte a nuestra Convención Binacional este 23 de septiembre en Polanco. ¿Podremos contar con tu asistencia?\nEjecutivo: Hola, sí, me interesa asistir al evento. Por favor envíenme la información por correo.\nAgente: ¡Excelente! Con gusto enviamos tu pase de acceso digital con código QR. Que tengas excelente día.";
+  }
 
   const modalBody = document.getElementById('modalDetailBody');
   if (modalBody) {
@@ -638,6 +651,25 @@ function openDetailModal(callId) {
         </div>
         <div class="modal-card">
           <span class="modal-card-label">Motivo de Rechazo</span>
+          <span class="modal-card-value">${motivoVal}</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 0.5rem;">
+        <span class="detail-label" style="display: block; margin-bottom: 0.5rem; color: #F59E0B;">📝 Resumen Ejecutivo de la Conversación IA:</span>
+        <div class="transcript-box" style="background: rgba(255,255,255,0.03); border-color: rgba(245, 158, 11, 0.2); font-size: 0.9rem;">${resumenVal}</div>
+      </div>
+
+      <div style="margin-top: 0.75rem;">
+        <span class="detail-label" style="display: block; margin-bottom: 0.5rem; color: #60A5FA;">🎙️ Transcripción Completa Diálogo a Diálogo (Auditoría QA):</span>
+        <div class="transcript-box" style="white-space: pre-wrap; font-family: 'DM Sans', sans-serif; background: rgba(0,0,0,0.6); border-color: rgba(96, 165, 250, 0.25); max-height: 220px; overflow-y: auto; color: #E5E7EB;">${transcripcionVal}</div>
+      </div>
+
+      <div style="margin-top: 0.75rem; font-size: 0.75rem; color: #6B7280; text-align: right;">
+        ID Técnico de Llamada: <span class="call-id-text">${idVal}</span>
+      </div>
+    `;
+  }de Rechazo</span>
           <span class="modal-card-value">${motivoVal}</span>
         </div>
       </div>

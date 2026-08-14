@@ -44,6 +44,11 @@
         
         /* Reglas de Impresión de Alta Fidelidad para PDF Libre de Scrollbars */
         @media print {
+            @page {
+                size: letter;
+                margin: 0;
+            }
+
             /* Ocultar elementos de control de la UI */
             .no-print { display: none !important; }
             
@@ -67,17 +72,17 @@
                 height: auto !important;
             }
             
-            /* Dimensionado A4/Carta exacto para impresión de hoja individual/lote */
+            /* Dimensionado Carta exacto para impresión de hoja individual/lote */
             .cv-page { 
                 page-break-after: always !important; 
                 page-break-inside: avoid !important;
                 margin: 0 auto !important; 
-                padding: 10mm 15mm !important;
+                padding: 8mm 15mm !important;
                 box-shadow: none !important;
                 border: none !important;
-                width: 210mm !important;
-                height: 297mm !important;
-                max-height: 297mm !important;
+                width: 215.9mm !important; /* Ancho Letter */
+                height: 279.4mm !important; /* Alto Letter */
+                max-height: 279.4mm !important;
                 overflow: hidden !important;
                 display: flex !important;
                 flex-direction: column !important;
@@ -89,32 +94,37 @@
             }
 
             .cv-page h2 {
-                font-size: 16px !important;
+                font-size: 15px !important;
             }
 
             .cv-page h3 {
-                font-size: 10.5px !important;
+                font-size: 10px !important;
             }
 
             .cv-page p, .cv-page li {
-                font-size: 9.5px !important;
-                line-height: 1.35 !important;
+                font-size: 9px !important;
+                line-height: 1.3 !important;
             }
 
             .cv-page #cvSkills span {
-                font-size: 8.5px !important;
-                padding: 1px 4px !important;
+                font-size: 8px !important;
+                padding: 1px 3px !important;
             }
 
             .cv-page .italic {
-                font-size: 9px !important;
+                font-size: 8.5px !important;
             }
             
             .cv-page .mt-auto p {
-                font-size: 8.5px !important;
-                line-height: 1.25 !important;
-                margin-bottom: 12px !important;
+                font-size: 8px !important;
+                line-height: 1.2 !important;
+                margin-bottom: 6px !important;
             }
+
+            .cv-page .mt-auto .flex {
+                font-size: 8.5px !important;
+            }
+        }
 
             .cv-page .mt-auto .flex {
                 font-size: 9px !important;

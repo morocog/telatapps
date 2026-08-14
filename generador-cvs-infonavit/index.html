@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Expedientes y CVs - Telat Mexico</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: DM Sans & Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Montserrat:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"DM Sans"', 'sans-serif'],
+                        montserrat: ['"Montserrat"', 'sans-serif']
+                    },
+                    colors: {
+                        telat: {
+                            blue: '#3284C6',
+                            orange: '#EB5B27',
+                            yellow: '#FECA66',
+                            dark: '#222221',
+                            light: '#FBFBFD'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: #F4F6F9;
+        }
+        .font-brand {
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        /* Reglas de Impresión de Alta Fidelidad para PDF Libre de Scrollbars */
+        @media print {
+            /* Ocultar elementos de control de la UI */
+            .no-print { display: none !important; }
+            
+            /* Forzar visualización de fondo y colores en el navegador */
+            body, html { 
+                background: white !important; 
+                color: #1e293b !important;
+                overflow: visible !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            #mainAppContainer {
+                display: none !important;
+            }
+
+            .print-container {
+                display: block !important;
+                width: 100% !important;
+            }
+            
+            /* Dimensionado A4/Carta exacto para impresión de hoja individual/lote */
+            .cv-page { 
+                page-break-after: always !important; 
+                page-break-inside: avoid !important;
+                margin: 0 auto !important; 
+                padding: 18mm 20mm !important;
+                box-shadow: none !important;
+                border: none !important;
+                width: 210mm !important;
+                min-height: 297mm !important;
+                height: auto !important;
+                overflow: hidden !important;
+                box-sizing: border-box !important;
+            }
+        }
+        
+        /* Custom Scrollbar para el panel lateral de control */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f8fafc; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Pantalla de Carga Inicial -->
+    <div id="loaderModal" class="fixed inset-0 bg-[#222221] z-[999] flex flex-col items-center justify-center text-white">
+        <div class="bg-[#3284C6] p-4 rounded-xl shadow-lg mb-4 animate-bounce">
+            <span class="text-2xl font-black font-brand tracking-wider">TELAT<span class="text-[#EB5B27]">.</span></span>
+        </div>
+        <h2 class="text-lg font-bold font-brand tracking-wide">Estableciendo conexión segura</h2>
+        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1.5">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-[#3284C6]"></i>
+            Sincronizando con Google Sheets...
+        </p>
+    </div>
+
+    <!-- Header Principal (Oculto en Impresión) -->
+    <header class="bg-[#222221] text-white shadow-md no-print border-b border-slate-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <!-- Logotipo e Identidad -->
+                <div class="bg-white px-2.5 py-1.5 rounded-lg shadow-sm flex items-center justify-center border border-slate-200">
+                    <span class="text-lg font-black tracking-wider text-[#3284C6] font-brand">TELAT<span class="text-[#EB5B27]">.</span></span>
+                </div>
+                <div>
+                    <h1 id="appTitle" class="text-base md:text-lg font-bold leading-tight font-brand flex items-center gap-2">
+                        Generador de Expedientes y CVs
+                        <span class="text-[10px] bg-[#EB5B27]/20 text-[#FECA66] px-2 py-0.5 rounded-full border border-[#EB5B27]/40 font-mono font-bold">Infonavit 033/CA/2026</span>
+                    </h1>
+                    <p id="appSub" class="text-xs text-slate-400">Telat Mexico S.A. de C.V. • 56 Candidatos Mapeados</p>
+                </div>
+            </div>
+            
+            <!-- Acciones e Indicadores -->
+            <div class="flex flex-wrap items-center gap-2.5">
+                <!-- Indicador de Sincronización en Tiempo Real -->
+                <div id="syncIndicator" class="text-xs text-slate-300 flex items-center gap-1.5 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="syncText">Sincronizado con Sheets</span>
+                </div>
+
+                <button onclick="poblarDatosDemostrativos()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2 rounded-lg flex items-center gap-1.5 transition border border-slate-700">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#FECA66]"></i> Auto-Llenar Datos
+                </button>
+                <button onclick="imprimirActual()" class="bg-[#3284C6] hover:bg-[#286ca3] text-white text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition shadow">
+                    <i data-lucide="printer" class="w-3.5 h-3.5"></i> Imprimir CV
+                </button>
+                <button onclick="imprimirLoteCompleto()" class="bg-[#EB5B27] hover:bg-[#d44d1d] text-white text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition shadow">
+                    <i data-lucide="files" class="w-3.5 h-3.5"></i> Imprimir Lote (56)
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenedor Principal (Pantalla Interactiva) -->
+    <main id="mainAppContainer" class="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 no-print">
+
+        <!-- Panel Izquierdo: Formulario y Navegación (5 Cols) -->
+        <section class="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[calc(100vh-95px)] overflow-hidden">
+            
+            <!-- Selector de Perfil / Numeral -->
+            <div class="p-4 border-b border-slate-200 bg-slate-50">
+                <div class="flex justify-between items-center mb-1.5">
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Candidato / Perfil Seleccionado:</label>
+                    <span id="lblProgreso" class="text-[11px] font-bold text-[#3284C6] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">Recurso 1 de 56</span>
+                </div>
+                <select id="selectRecurso" onchange="cargarFormularioRecurso(this.value)" class="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-xl p-2.5 font-semibold focus:ring-2 focus:ring-[#3284C6] focus:border-[#3284C6] focus:outline-none transition">
+                    <!-- Cargando opciones dinámicas -->
+                </select>
+                <div id="badgeNumeral" class="mt-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 p-2.5 rounded-xl flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="folder-check" class="w-4 h-4 text-[#3284C6]"></i>
+                        <span id="txtNumeral" class="text-xs font-bold text-slate-800">Cargando Numeral...</span>
+                    </div>
+                    <span id="badgeRequisitos" class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">Cargando</span>
+                </div>
+            </div>
+
+            <!-- Formulario Reactivo de Edición -->
+            <div class="p-4 flex-1 overflow-y-auto space-y-4 text-xs">
+                
+                <div class="bg-blue-50/70 border border-blue-100 text-slate-700 p-3 rounded-xl text-[11px] leading-relaxed flex items-start gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-[#3284C6] shrink-0 mt-0.5"></i>
+                    <span>Toda modificación se <strong>sincroniza en segundo plano</strong> directamente en tu base de datos de Google Sheets.</span>
+                </div>
+
+                <!-- Bloque 1: Datos Personales -->
+                <div class="space-y-3">
+                    <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-[#3284C6] flex items-center gap-1.5 font-brand">
+                        <i data-lucide="user" class="w-3.5 h-3.5"></i> Datos Generales del Candidato
+                    </h4>
+                    
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Nombre Completo:</label>
+                        <input type="text" id="inpNombre" oninput="actualizarCampo('nombre', this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#3284C6] focus:outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">RFC / CURP:</label>
+                            <input type="text" id="inpRfc" oninput="actualizarCampo('rfc', this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#3284C6] focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Teléfono:</label>
+                            <input type="text" id="inpTelefono" oninput="actualizarCampo('telefono', this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#3284C6] focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Correo Electrónico Corporativo:</label>
+                        <input type="email" id="inpCorreo" oninput="actualizarCampo('correo', this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#3284C6] focus:outline-none">
+                    </div>
+                </div>
+
+                <hr class="border-slate-200">
+
+                <!-- Bloque 2: Escolaridad y Acreditaciones -->
+                <div class="space-y-3">
+                    <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-[#3284C6] flex items-center gap-1.5 font-brand">
+                        <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> Escolaridad y Certificaciones
+                    </h4>
+                    
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Grado Académico / Carrera:</label>
+                        <input type="text" id="inpEstudios" oninput="actualizarCampo('estudios', this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#3284C6] focus:outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Cédula Profesional:</label>
+                            <input type="text" id="inpCedula" oninput="actualizarCampo('cedula', this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#3284C6] focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Folio / Certificado ITIL:</label>
+                            <input type="text" id="inpItil" oninput="actualizarCampo('itil', this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#3284C6] focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-slate-200">
+
+                <!-- Bloque 3: Historial Laboral -->
+                <div class="space-y-3">
+                    <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-[#3284C6] flex items-center gap-1.5 font-brand">
+                        <i data-lucide="briefcase" class="w-3.5 h-3.5"></i> Experiencia Laboral Comprobable
+                    </h4>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Empresa Anterior 1 (Razón Social y Período):</label>
+                        <input type="text" id="inpEmpresa1" oninput="actualizarCampo('empresa1', this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#3284C6] focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Empresa Anterior 2 (Razón Social y Período):</label>
+                        <input type="text" id="inpEmpresa2" oninput="actualizarCampo('empresa2', this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#3284C6] focus:outline-none">
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Botones de Navegación del Formulario -->
+            <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs">
+                <button onclick="navegarRecurso(-1)" class="px-3.5 py-2 border border-slate-300 rounded-lg hover:bg-slate-100 font-semibold flex items-center gap-1.5 transition">
+                    <i data-lucide="chevron-left" class="w-4 h-4"></i> Anterior
+                </button>
+                <button onclick="restablecerRecursoServidor()" class="text-slate-400 hover:text-red-500 font-semibold transition text-[11px]">
+                    Deshacer
+                </button>
+                <button onclick="navegarRecurso(1)" class="px-3.5 py-2 bg-[#222221] text-white rounded-lg hover:bg-slate-800 font-semibold flex items-center gap-1.5 transition">
+                    Siguiente <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+        </section>
+
+        <!-- Panel Derecho: Previsualización de la Hoja Membretada (7 Cols) -->
+        <section class="lg:col-span-7 bg-slate-200/70 p-4 rounded-2xl border border-slate-300 overflow-y-auto max-h-[calc(100vh-95px)] flex justify-center">
+            
+            <!-- Hoja Tamaño Carta Digital -->
+            <div id="cvDocumento" class="cv-preview w-[210mm] min-h-[297mm] bg-white shadow-xl p-10 flex flex-col justify-between text-slate-800 text-xs relative rounded-sm">
+                
+                <div>
+                    <!-- Encabezado Membretado Oficial -->
+                    <div class="flex justify-between items-start border-b-2 border-[#3284C6] pb-4 mb-5">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-[#222221] px-3 py-1.5 rounded-lg flex items-center justify-center">
+                                <span class="text-lg font-brand font-black tracking-wider text-white">TELAT<span class="text-[#EB5B27]">.</span></span>
+                            </div>
+                            <div>
+                                <div class="text-base font-black text-slate-900 tracking-wider font-brand">TELAT MEXICO</div>
+                                <div id="membreteRazonSocial" class="text-[10px] text-[#3284C6] font-bold uppercase tracking-widest">TELAT MEXICO S.A. DE C.V.</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span id="cvLicitacionBadge" class="inline-block bg-slate-100 border border-slate-300 text-slate-800 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase font-mono">
+                                Licitación 033/CA/2026-109474
+                            </span>
+                            <div class="text-[10px] text-slate-500 font-semibold mt-1" id="cvFolderRef">Folder: Cargando...</div>
+                        </div>
+                    </div>
+
+                    <!-- Ficha Técnica de Datos -->
+                    <div class="bg-[#FBFBFD] border border-slate-200 p-4 rounded-xl mb-5 flex justify-between items-start shadow-sm">
+                        <div>
+                            <h2 id="cvNombre" class="text-xl font-black text-slate-900 mb-0.5 font-brand">CARGANDO NOMBRE...</h2>
+                            <p id="cvPuesto" class="text-xs font-bold text-[#EB5B27] uppercase tracking-wide">PUESTO O ROL OPERATIVO</p>
+                            <div class="mt-2.5 text-[11px] text-slate-600 space-y-0.5">
+                                <div><span class="font-bold text-slate-700">RFC/CURP:</span> <span id="cvRfc" class="font-semibold">Cargando...</span></div>
+                                <div><span class="font-bold text-slate-700">Teléfono:</span> <span id="cvTelefono">Cargando...</span> | <span class="font-bold text-slate-700">Correo:</span> <span id="cvCorreo">Cargando...</span></div>
+                            </div>
+                        </div>
+                        <div class="text-right border-l border-slate-200 pl-4 text-[10px] min-w-[170px]">
+                            <div class="font-bold text-slate-500 uppercase mb-1">Acreditación Académica</div>
+                            <div id="cvEstudios" class="font-bold text-slate-800 text-xs">Cargando Estudios...</div>
+                            <div id="cvCedula" class="text-slate-600 mt-0.5">Cargando Cédula...</div>
+                            <div id="cvItilBadge" class="mt-2 inline-block bg-blue-50 text-[#3284C6] font-bold px-2.5 py-1 rounded-md border border-blue-200">
+                                ITIL v4 Foundation
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Perfil Profesional -->
+                    <div class="mb-5">
+                        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1.5 mb-2 text-[#3284C6] flex items-center gap-1.5 font-brand">
+                            <i data-lucide="user-check" class="w-3.5 h-3.5"></i> Perfil Profesional y Competencias
+                        </h3>
+                        <p id="cvPerfilTexto" class="text-[11px] text-slate-700 leading-relaxed text-justify">
+                            Cargando descripción adaptada dinámicamente...
+                        </p>
+                    </div>
+
+                    <!-- Experiencia Laboral -->
+                    <div class="mb-5">
+                        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1.5 mb-3 text-[#3284C6] flex items-center gap-1.5 font-brand">
+                            <i data-lucide="briefcase" class="w-3.5 h-3.5"></i> Trayectoria Laboral Relevante (Mesa de Servicio / TI)
+                        </h3>
+                        
+                        <div class="space-y-4 text-[11px]">
+                            <!-- Empleo 1 -->
+                            <div class="border-l-2 border-[#3284C6] pl-3">
+                                <div class="flex justify-between font-bold text-slate-800">
+                                    <span id="cvEmpresa1">Cargando Empresa...</span>
+                                    <span id="cvPeriodo1" class="text-slate-500 font-normal">Período</span>
+                                </div>
+                                <div id="cvPuestoEmp1" class="text-slate-600 italic font-medium mb-1">Especialista Operativo / Soporte TI</div>
+                                <ul id="cvFunciones1" class="list-disc list-inside text-slate-600 space-y-1 text-[10.5px]">
+                                    <!-- Funciones dinámicas -->
+                                </ul>
+                            </div>
+
+                            <!-- Empleo 2 -->
+                            <div class="border-l-2 border-slate-300 pl-3">
+                                <div class="flex justify-between font-bold text-slate-800">
+                                    <span id="cvEmpresa2">Cargando Empresa...</span>
+                                    <span id="cvPeriodo2" class="text-slate-500 font-normal">Período</span>
+                                </div>
+                                <div id="cvPuestoEmp2" class="text-slate-600 italic font-medium mb-1">Analista de Servicio</div>
+                                <ul id="cvFunciones2" class="list-disc list-inside text-slate-600 space-y-1 text-[10.5px]">
+                                    <!-- Funciones dinámicas -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Habilidades -->
+                    <div class="mb-5">
+                        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1.5 mb-2 text-[#3284C6] flex items-center gap-1.5 font-brand">
+                            <i data-lucide="cpu" class="w-3.5 h-3.5"></i> Habilidades Técnicas y Herramientas Manejadas
+                        </h3>
+                        <div id="cvSkills" class="flex flex-wrap gap-1.5 text-[10.5px]">
+                            <!-- Badges -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pie de Página: Manifestación y Firma -->
+                <div class="border-t border-slate-300 pt-4 mt-auto">
+                    <p class="text-[9.5px] text-slate-500 text-center italic mb-8">
+                        "Manifiesto bajo protesta de decir verdad que los datos asentados en el presente Currículum Vitae son verídicos y que cuento con la disponibilidad inmediata para prestar mis servicios en la licitación abierta 033/CA/2026-109474 para el INFONAVIT."
+                    </p>
+                    <div class="flex justify-around items-end text-center text-[10.5px]">
+                        <div>
+                            <div class="w-52 border-b border-slate-800 mb-1.5"></div>
+                            <div id="cvFirmaNombre" class="font-bold text-slate-900 font-brand">NOMBRE DEL RECURSO</div>
+                            <div class="text-slate-500 text-[9.5px]">Firma Autógrafa del Recurso</div>
+                        </div>
+                        <div>
+                            <div class="w-52 border-b border-slate-800 mb-1.5"></div>
+                            <div class="font-bold text-slate-900 font-brand">REPRESENTANTE LEGAL</div>
+                            <div id="firmaRazonSocial" class="text-slate-500 text-[9.5px]">Telat Mexico S.A. de C.V.</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Contenedor Único y Exclusivo de Impresión (Oculto en Pantalla Web, Activo en Print) -->
+    <div id="printOutputArea" class="hidden print-container"></div>
+
+    <!-- Script de Automatización de UI y Conexión con GAS -->
+    <script>
+        // Estructura de Datos del Cliente
+        let datosRecursos = [];
+        let configSistema = {};
+        let recursoSeleccionadoIndex = 0;
+        let saveDebounceTimer = null;
+
+        // Inicialización
+        window.onload = function() {
+            lucide.createIcons();
+            
+            // Intenta detectar si estamos en el entorno seguro de GAS
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                conectarConGoogleSheets();
+            } else {
+                console.warn("⚠️ Ejecutando localmente fuera de Google Apps Script. Iniciando en modo Fallback.");
+                iniciarModoFallbackLocal();
+            }
+        };
+
+        // 1. Comunicación con el Servidor GAS
+        function conectarConGoogleSheets() {
+            mostrarLoader(true, "Cargando datos desde la base de datos de Google Sheets...");
+            google.script.run
+                .withSuccessHandler(function(response) {
+                    datosRecursos = response.recursos;
+                    configSistema = response.config;
+                    
+                    // Aplicar la configuración dinámica del Sheet
+                    aplicarConfiguracionDinamica();
+                    poblarSelectRecursos();
+                    cargarFormularioRecurso(0);
+                    mostrarLoader(false);
+                })
+                .withFailureHandler(function(err) {
+                    mostrarLoader(true, "❌ Error de conexión: " + err.message);
+                })
+                .cargarDatosSistema();
+        }
+
+        function aplicarConfiguracionDinamica() {
+            const rs = configSistema["RAZON_SOCIAL"] || "Telat Mexico S.A. de C.V.";
+            const lic = configSistema["LICITACION"] || "Licitación Abierta 033/CA/2026-109474";
+            
+            // Título e identificaciones en la app
+            document.getElementById('appTitle').innerHTML = `Generador de Expedientes y CVs <span class="text-[10px] bg-[#EB5B27]/20 text-[#FECA66] px-2 py-0.5 rounded-full border border-[#EB5B27]/40 font-mono font-bold">${lic}</span>`;
+            document.getElementById('appSub').textContent = `${rs} • 56 Candidatos Mapeados`;
+            
+            // Membrete del CV
+            document.getElementById('membreteRazonSocial').textContent = rs.toUpperCase();
+            document.getElementById('firmaRazonSocial').textContent = rs;
+            document.getElementById('cvLicitacionBadge').textContent = lic;
+        }
+
+        function iniciarModoFallbackLocal() {
+            // Inicializar base de datos con catálogo vacío como fallback
+            configSistema = {
+                "RAZON_SOCIAL": "Telat Mexico S.A. de C.V. (Local)",
+                "LICITACION": "Infonavit Demo 033/CA/2026",
+                "CORREO_CORPORATIVO_DOMINIO": "@telat-group.com"
+            };
+            
+            // Catálogo básico
+            datosRecursos = [
+                { id: 1, numeral: "4.1 Gerencia y Liderazgo", puesto: "Gerente de Proyecto", studies: "Lic. en Sistemas", cedula: "800001", itil: "ITIL-G1", reqText: "Título + ITIL", plantilla: "GERENTE" },
+                { id: 2, numeral: "4.2 Supervisores", puesto: "Supervisor de Mesa de Servicio", studies: "Pasante Ing. Sistemas", cedula: "Comprobante Adjunto", itil: "ITIL-S2", reqText: "ITIL + Exp. 3a", plantilla: "SUPERVISOR" },
+                { id: 3, numeral: "4.3 Gestores Nivel IV", puesto: "Especialista en IA y Prompts", studies: "Lic. en Ciencias de la Computación", cedula: "No Requerida", itil: "N/A", reqText: "Cert. IA", plantilla: "IA" }
+            ].map((p, idx) => ({
+                ...p,
+                nombre: `CANDIDATO DEMO #${p.id}`,
+                rfc: `TEL${900101 + idx}HQ1`,
+                telefono: `55 ${5000 + idx} 1234`,
+                correo: `recurso${p.id}@telat-group.com`,
+                estudios: p.studies,
+                cedula: p.cedula,
+                itil: p.itil,
+                empresa1: "Atento Servicios S.A. de C.V. (2022 - 2025)",
+                empresa2: "Teleperformance México (2020 - 2022)"
+            }));
+
+            document.getElementById('syncIndicator').className = "text-xs text-amber-600 flex items-center gap-1.5 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200";
+            document.getElementById('syncText').textContent = "Modo Local Fallback (Sin Sheets)";
+
+            aplicarConfiguracionDinamica();
+            poblarSelectRecursos();
+            cargarFormularioRecurso(0);
+            mostrarLoader(false);
+        }
+
+        // 2. Control de UI y Formulario
+        function poblarSelectRecursos() {
+            const sel = document.getElementById('selectRecurso');
+            sel.innerHTML = '';
+            datosRecursos.forEach((r, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = `#${r.id} • ${r.puesto}`;
+                sel.appendChild(opt);
+            });
+        }
+
+        function cargarFormularioRecurso(index) {
+            recursoSeleccionadoIndex = parseInt(index);
+            const r = datosRecursos[recursoSeleccionadoIndex];
+
+            document.getElementById('txtNumeral').textContent = `${r.numeral}`;
+            document.getElementById('badgeRequisitos').textContent = r.reqText || "Requisito Estándar";
+            document.getElementById('lblProgreso').textContent = `Recurso ${r.id} de ${datosRecursos.length}`;
+
+            document.getElementById('inpNombre').value = r.nombre;
+            document.getElementById('inpRfc').value = r.rfc;
+            document.getElementById('inpTelefono').value = r.telefono;
+            document.getElementById('inpCorreo').value = r.correo;
+            document.getElementById('inpEstudios').value = r.estudios;
+            document.getElementById('inpCedula').value = r.cedula;
+            document.getElementById('inpItil').value = r.itil;
+            document.getElementById('inpEmpresa1').value = r.empresa1;
+            document.getElementById('inpEmpresa2').value = r.empresa2;
+
+            renderizarCV(r);
+        }
+
+        function actualizarCampo(campo, valor) {
+            datosRecursos[recursoSeleccionadoIndex][campo] = valor;
+            renderizarCV(datosRecursos[recursoSeleccionadoIndex]);
+
+            // Debouncing del guardado automático en Sheets para optimizar red
+            setSyncStatus("guardando");
+            clearTimeout(saveDebounceTimer);
+            saveDebounceTimer = setTimeout(function() {
+                guardarCambioEnSheets(datosRecursos[recursoSeleccionadoIndex]);
+            }, 600);
+        }
+
+        function guardarCambioEnSheets(recurso) {
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                google.script.run
+                    .withSuccessHandler(function() {
+                        setSyncStatus("sincronizado");
+                    })
+                    .withFailureHandler(function(err) {
+                        console.error("Error al sincronizar fila:", err.message);
+                        setSyncStatus("error", err.message);
+                    })
+                    .guardarRecursoEnSheet(recurso.id, recurso);
+            } else {
+                setSyncStatus("sincronizado"); // Simulador local
+            }
+        }
+
+        function setSyncStatus(estado, errorMsg = "") {
+            const ind = document.getElementById('syncIndicator');
+            const txt = document.getElementById('syncText');
+            
+            if (estado === "sincronizado") {
+                ind.className = "text-xs text-slate-300 flex items-center gap-1.5 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700";
+                txt.textContent = "Sincronizado con Sheets";
+            } else if (estado === "guardando") {
+                ind.className = "text-xs text-blue-400 flex items-center gap-1.5 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700";
+                txt.textContent = "Guardando cambios...";
+            } else if (estado === "error") {
+                ind.className = "text-xs text-red-400 flex items-center gap-1.5 bg-red-950/40 px-3 py-2 rounded-lg border border-red-800/40";
+                txt.textContent = "Error de sincronización";
+                console.error("Detalle del fallo:", errorMsg);
+            }
+        }
+
+        function navegarRecurso(delta) {
+            let nuevoIndex = recursoSeleccionadoIndex + delta;
+            if (nuevoIndex >= 0 && nuevoIndex < datosRecursos.length) {
+                document.getElementById('selectRecurso').value = nuevoIndex;
+                cargarFormularioRecurso(nuevoIndex);
+            }
+        }
+
+        function restablecerRecursoServidor() {
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                conectarConGoogleSheets();
+            } else {
+                iniciarModoFallbackLocal();
+            }
+        }
+
+        // 3. Generación de Contenido Parafraseado y Estilos
+        function obtenerDatosGeneradosCV(r) {
+            const variacion = r.id % 3;
+            let textoPerfil = "";
+            let funciones1 = [];
+            let funciones2 = [];
+            let skills = [];
+
+            if (r.plantilla === "GERENTE") {
+                textoPerfil = "Profesional senior con más de 8 años de experiencia coordinando operaciones de Mesas de Ayuda y Centros de Contacto en el sector gubernamental y financiero. Especialista en gestión de ANS/SLAs, metodologías ITIL v4 y liderazgo de equipos multidisciplinarios superiores a 50 posiciones.";
+                funciones1 = [
+                    "Dirección operativa y control de la calidad en la atención de incidentes para aplicaciones críticas institucionales.",
+                    "Monitoreo diario del rendimiento operativo, TMO, FCR y nivel de servicio de canales telefónicos e interactivos.",
+                    "Interacción con directivos para presentación de reportes de desempeño y planes de mejora continua."
+                ];
+                skills = ["ITIL v4 Foundation", "PMP / Scrum", "Gestión de SLAs", "Power BI", "Liderazgo de BPO", "Gestión Presupuestal"];
+            } else if (r.plantilla === "SUPERVISOR") {
+                textoPerfil = `Supervisor de operaciones con sólida trayectoria en monitoreo de métricas operativas y gestión de personal telefónico. Experiencia de ${3 + variacion} años liderando turnos en mesas de servicio y control de accesos bajo buenas prácticas ITIL.`;
+                funciones1 = [
+                    "Supervisión en tiempo real de la adherencia al flujo de atención de llamadas y tickets corporativos.",
+                    "Retroalimentación a agentes operativos para el cumplimiento de guías de negocio y matrices de Calidad.",
+                    "Gestión de escalamientos operativos de primer y segundo nivel hacia áreas resolutorias."
+                ];
+                skills = ["Supervisión Operativa", "ITIL v4", "Monitoreo ACD/IVR", "Office 365 Advanced", "Gestión de Métrica FCR", "Liderazgo de Equipos"];
+            } else if (r.plantilla === "GESTOR") {
+                textoPerfil = `Analista especialista Nivel IV enfocado en la Gestión de Incidentes Mayores y Causa Raíz (RCA). Amplia experiencia en diagnóstico de fallas complejas en software corporativo, coordinación de comités de crisis y seguimiento con áreas de desarrollo e infraestructura.`;
+                funciones1 = [
+                    "Coordinación e investigación de incidentes críticos de severidad alta que afectan la continuidad operativa.",
+                    "Análisis de tendencia de tickets para la conversión de incidentes recurrentes a problemas.",
+                    "Elaboración de informes de causa raíz (RCA) y planes de acción preventivos."
+                ];
+                skills = ["Gestión de Problemas", "Análisis Causa Raíz (RCA)", "ITIL v4", "ITSM / Remedy / ServiceNow", "Directorio Activo", "Diagnóstico de Redes"];
+            } else if (r.plantilla === "IA") {
+                textoPerfil = "Especialista en Inteligencia Artificial Conversacional e Ingeniería de Prompts. Acreditado en fundamentos de IA Generativa y Nube. Experiencia en el entrenamiento de chatbots, bases de conocimiento dinámicas y enrutamiento inteligente de solicitudes.";
+                funciones1 = [
+                    "Diseño y optimización de prompts para asistentes virtuales de primera línea y autoatención.",
+                    "Análisis de intenciones de usuarios y actualización continua de la base de conocimientos con IA.",
+                    "Integración de flujos conversacionales con la plataforma telefónica ACD e ITSM."
+                ];
+                skills = ["Google Cloud AI", "Prompt Engineering", "NLP / Chatbots", "Python Basics", "Base de Conocimiento", "Análisis de Datos"];
+            } else if (r.plantilla === "STAFF") {
+                textoPerfil = `Especialista en procesos de soporte operativo con enfoque en aseguramiento de calidad, capacitación continua y analítica de datos. Experiencia comprobada en auditorías de servicio y diseño de planes de entrenamiento para mesas de ayuda de misión crítica.`;
+                funciones1 = [
+                    "Auditoría y evaluación de interacciones telefónicas y digitales bajo matrices de calidad estándar.",
+                    "Elaboración de tableros de control de indicadores operativos y reportes de desempeño gerencial.",
+                    "Actualización de manuales operativos y guías rápidas de resolución."
+                ];
+                skills = ["Auditoría de Calidad", "Capacitación Operativa", "Power BI / Excel Avanzado", "Documentación ITSM", "Evaluación de KPIs"];
+            } else {
+                // AGENTES (MS, CAL, TEC, CONM)
+                const verbos = ["Atención y registro oportuno de", "Procesamiento y seguimiento de", "Diagnóstico telefónico y atención para"];
+                textoPerfil = `${verbos[variacion]} solicitudes e incidentes de usuarios finales en mesa de ayuda. Dominio de paquetería Microsoft Office 365, sistemas de ticketera corporativos y habilidades de atención al cliente telefónica y vía chat.`;
+                funciones1 = [
+                    "Registro detallado de llamadas e incidentes en el sistema de tickets asignando la categorización correcta.",
+                    "Soporte de primer nivel para restablecimiento de contraseñas, desbloqueos de cuentas y navegación en portales.",
+                    "Cumplimiento estricto de los tiempos de atención y solución definidos en los Niveles de Servicio."
+                ];
+                skills = ["Atención Telefónica", "Office 365", "Control de Accesos", "Ticketing ITSM", "Captura Rápida", "Escucha Activa"];
+            }
+
+            funciones2 = [
+                "Atención de requerimientos de usuarios internos cumpliendo rigurosamente los procedimientos operativos estándar.",
+                "Colaboración activa en el logro de las metas grupales de satisfacción al cliente (CSAT) y resolución en primer contacto (FCR)."
+            ];
+
+            return { textoPerfil, funciones1, funciones2, skills };
+        }
+
+        function renderizarCV(r) {
+            const { textoPerfil, funciones1, funciones2, skills } = obtenerDatosGeneradosCV(r);
+
+            document.getElementById('cvFolderRef').textContent = `Folder: ${r.numeral} / Recurso #${r.id}`;
+            document.getElementById('cvNombre').textContent = r.nombre.toUpperCase();
+            document.getElementById('cvFirmaNombre').textContent = r.nombre.toUpperCase();
+            document.getElementById('cvPuesto').textContent = r.puesto.toUpperCase();
+            document.getElementById('cvRfc').textContent = r.rfc;
+            document.getElementById('cvTelefono').textContent = r.telefono;
+            document.getElementById('cvCorreo').textContent = r.correo;
+            document.getElementById('cvEstudios').textContent = r.estudios;
+            document.getElementById('cvCedula').textContent = r.cedula !== "No requerida" ? `Cédula: ${r.cedula}` : `Comprobante Adjunto`;
+            
+            const badgeItil = document.getElementById('cvItilBadge');
+            if (r.itil && r.itil !== "N/A" && r.itil !== "No requerida") {
+                badgeItil.style.display = 'inline-block';
+                badgeItil.textContent = `ITIL v4 ID: ${r.itil}`;
+            } else {
+                badgeItil.style.display = 'none';
+            }
+
+            document.getElementById('cvPerfilTexto').textContent = textoPerfil;
+            document.getElementById('cvEmpresa1').textContent = r.empresa1;
+            document.getElementById('cvEmpresa2').textContent = r.empresa2;
+
+            const ul1 = document.getElementById('cvFunciones1');
+            ul1.innerHTML = '';
+            funciones1.forEach(f => {
+                const li = document.createElement('li');
+                li.textContent = f;
+                ul1.appendChild(li);
+            });
+
+            const ul2 = document.getElementById('cvFunciones2');
+            ul2.innerHTML = '';
+            funciones2.forEach(f => {
+                const li = document.createElement('li');
+                li.textContent = f;
+                ul2.appendChild(li);
+            });
+
+            const divSkills = document.getElementById('cvSkills');
+            divSkills.innerHTML = '';
+            skills.forEach(s => {
+                const span = document.createElement('span');
+                span.className = "bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded border border-slate-300";
+                span.textContent = s;
+                divSkills.appendChild(span);
+            });
+
+            lucide.createIcons();
+        }
+
+        // Llenado de 56 Candidatos de Prueba Realistas en la BD
+        function poblarDatosDemostrativos() {
+            if (!confirm("Esta acción sobrescribirá los nombres y datos personales de los 56 registros en Google Sheets por datos de prueba. ¿Deseas continuar?")) {
+                return;
+            }
+
+            mostrarLoader(true, "Generando candidatos y sincronizando base de datos...");
+            
+            const nombresAleatorios = [
+                "Carlos Alberto Mendoza Ruiz", "María Elena Hernández Gómez", "Jorge Luis Torres Morales", "Ana Patricia Ramírez Silva",
+                "Fernando José Castillo Vega", "Laura Sofía Delgado Reyes", "Ricardo Emmanuel Vargas Ortiz", "Claudia Ivonne Guerrero Peña",
+                "Gabriel Alejandro Navarro Cruz", "Mónica Beatriz Salazar Ramos", "Héctor Eduardo Ríos Luna", "Adriana Isabel Méndez Castro",
+                "Rodrigo Antonio Morales Flores", "Valeria Guadalupe Ortiz Domínguez", "Oscar Mauricio Peña Velázquez", "Paola Estefanía Aguilar Rivas"
+            ];
+
+            // Generar localmente
+            datosRecursos.forEach((r, idx) => {
+                const nom = nombresAleatorios[idx % nombresAleatorios.length] + ` (#${r.id})`;
+                r.nombre = nom;
+                r.rfc = `TEL${880101 + idx}HQ1`;
+                r.telefono = `55 ${5500 + idx} ${1000 + idx}`;
+                r.correo = `operaciones.casia${r.id}@telat-group.com`;
+                r.empresa1 = idx % 2 === 0 ? "Atento Servicios S.A. de C.V. (2022 - 2025)" : "Teleperformance México (2021 - 2024)";
+                r.empresa2 = idx % 2 === 0 ? "Sutherland Global Services (2019 - 2022)" : "Foundever / Sitel México (2018 - 2021)";
+            });
+
+            // Enviar guardado recursivo en el backend para todos
+            sincronizarLoteCompletoServidor(0);
+        }
+
+        function sincronizarLoteCompletoServidor(index) {
+            if (index >= datosRecursos.length) {
+                mostrarLoader(false);
+                cargarFormularioRecurso(recursoSeleccionadoIndex);
+                alert("¡Se han generado y guardado los 56 perfiles exitosamente!");
+                return;
+            }
+
+            mostrarLoader(true, `Guardando en Sheets: Recurso ${index + 1} de 56...`);
+
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                google.script.run
+                    .withSuccessHandler(function() {
+                        sincronizarLoteCompletoServidor(index + 1);
+                    })
+                    .withFailureHandler(function(err) {
+                        mostrarLoader(false);
+                        alert("Error al guardar lote completo: " + err.message);
+                    })
+                    .guardarRecursoEnSheet(datosRecursos[index].id, datosRecursos[index]);
+            } else {
+                // Modo local
+                setTimeout(function() {
+                    sincronizarLoteCompletoServidor(index + 1);
+                }, 20);
+            }
+        }
+
+        // 4. Lógica de Impresión de Alta Calidad sin Scrollbars
+        function imprimirActual() {
+            const printArea = document.getElementById('printOutputArea');
+            printArea.innerHTML = ''; // Limpiar previo
+
+            // Obtener el HTML renderizado del CV activo
+            const originalCv = document.getElementById('cvDocumento');
+            const clone = originalCv.cloneNode(true);
+            clone.id = 'cvDocumento_print';
+            clone.className = "cv-preview cv-page bg-white p-10 flex flex-col justify-between text-slate-800 text-xs";
+            
+            printArea.appendChild(clone);
+
+            // Ejecutar la impresión nativa del sistema
+            window.print();
+            printArea.innerHTML = ''; // Limpiar después de imprimir
+        }
+
+        function imprimirLoteCompleto() {
+            mostrarLoader(true, "Preparando el lote de 56 CVs para impresión...");
+
+            setTimeout(function() {
+                const printArea = document.getElementById('printOutputArea');
+                printArea.innerHTML = ''; // Limpiar previo
+
+                const rs = configSistema["RAZON_SOCIAL"] || "Telat Mexico S.A. de C.V.";
+                const lic = configSistema["LICITACION"] || "Licitación Abierta 033/CA/2026-109474";
+
+                // Renderizar los 56 perfiles continuos
+                datosRecursos.forEach(r => {
+                    const { textoPerfil, funciones1, funciones2, skills } = obtenerDatosGeneradosCV(r);
+                    
+                    const page = document.createElement('div');
+                    page.className = "cv-page cv-preview bg-white p-10 flex flex-col justify-between text-slate-800 text-xs";
+                    page.innerHTML = `
+                        <div>
+                            <div class="flex justify-between items-start border-b-2 border-[#3284C6] pb-4 mb-5">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-[#222221] px-3 py-1.5 rounded-lg flex items-center justify-center">
+                                        <span class="text-lg font-brand font-black tracking-wider text-white">TELAT<span class="text-[#EB5B27]">.</span></span>
+                                    </div>
+                                    <div>
+                                        <div class="text-base font-brand font-black text-slate-900 tracking-wider">TELAT MEXICO</div>
+                                        <div class="text-[10px] text-[#3284C6] font-bold uppercase tracking-widest">${rs.toUpperCase()}</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-block bg-slate-100 border border-slate-300 text-slate-800 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase font-mono">
+                                        ${lic}
+                                    </span>
+                                    <div class="text-[10px] text-slate-500 font-semibold mt-1">Folder: ${r.numeral} / Recurso #${r.id}</div>
+                                </div>
+                            </div>
+
+                            <div class="bg-[#FBFBFD] border border-slate-200 p-4 rounded-xl mb-5 flex justify-between items-start">
+                                <div>
+                                    <h2 class="text-xl font-brand font-black text-slate-900 mb-0.5">${r.nombre.toUpperCase()}</h2>
+                                    <p class="text-xs font-bold text-[#EB5B27] uppercase tracking-wide">${r.puesto.toUpperCase()}</p>
+                                    <div class="mt-2.5 text-[11px] text-slate-600 space-y-0.5">
+                                        <div><span class="font-bold text-slate-700">RFC/CURP:</span> <span class="font-semibold">${r.rfc}</span></div>
+                                        <div><span class="font-bold text-slate-700">Teléfono:</span> <span>${r.telefono}</span> | <span class="font-bold text-slate-700">Correo:</span> <span>${r.correo}</span></div>
+                                    </div>
+                                </div>
+                                <div class="text-right border-l border-slate-200 pl-4 text-[10px] min-w-[170px]">
+                                    <div class="font-bold text-slate-500 uppercase mb-1">Acreditación Académica</div>
+                                    <div class="font-bold text-slate-800 text-xs">${r.estudios}</div>
+                                    <div class="text-slate-600 mt-0.5">${r.cedula !== "No requerida" ? `Cédula: ${r.cedula}` : `Comprobante Adjunto`}</div>
+                                    ${(r.itil && r.itil !== "N/A" && r.itil !== "No requerida") ? `<div class="mt-2 inline-block bg-blue-50 text-[#3284C6] font-bold px-2.5 py-1 rounded-md border border-blue-200">ITIL v4 ID: ${r.itil}</div>` : ''}
+                                </div>
+                            </div>
+
+                            <div class="mb-5">
+                                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1.5 mb-2 text-[#3284C6] font-brand">
+                                    Perfil Profesional y Competencias
+                                </h3>
+                                <p class="text-[11px] text-slate-700 leading-relaxed text-justify">${textoPerfil}</p>
+                            </div>
+
+                            <div class="mb-5">
+                                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1.5 mb-3 text-[#3284C6] font-brand">
+                                    Trayectoria Laboral Relevante (Mesa de Servicio / TI)
+                                </h3>
+                                <div class="space-y-4 text-[11px]">
+                                    <div class="border-l-2 border-[#3284C6] pl-3">
+                                        <div class="flex justify-between font-bold text-slate-800">
+                                            <span>${r.empresa1}</span>
+                                        </div>
+                                        <div class="text-slate-600 italic font-medium mb-1">Especialista Operativo / Mesa de Ayuda</div>
+                                        <ul class="list-disc list-inside text-slate-600 space-y-1 text-[10.5px]">
+                                            ${funciones1.map(f => `<li>${f}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                    <div class="border-l-2 border-slate-300 pl-3">
+                                        <div class="flex justify-between font-bold text-slate-800">
+                                            <span>${r.empresa2}</span>
+                                        </div>
+                                        <div class="text-slate-600 italic font-medium mb-1">Analista de Soporte / Atención Telefónica</div>
+                                        <ul class="list-disc list-inside text-slate-600 space-y-1 text-[10.5px]">
+                                            ${funciones2.map(f => `<li>${f}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-5">
+                                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1.5 mb-2 text-[#3284C6] font-brand">
+                                    Habilidades Técnicas y Herramientas Manejadas
+                                </h3>
+                                <div class="flex flex-wrap gap-1.5 text-[10.5px]">
+                                    ${skills.map(s => `<span class="bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded border border-slate-300">${s}</span>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-300 pt-4 mt-auto">
+                            <p class="text-[9.5px] text-slate-500 text-center italic mb-8">
+                                "Manifiesto bajo protesta de decir verdad que los datos asentados en el presente Currículum Vitae son verídicos y que cuento con la disponibilidad inmediata para prestar mis servicios en la licitación abierta 033/CA/2026-109474 para el INFONAVIT."
+                            </p>
+                            <div class="flex justify-around items-end text-center text-[10.5px]">
+                                <div>
+                                    <div class="w-52 border-b border-slate-800 mb-1.5"></div>
+                                    <div class="font-bold text-slate-900 font-brand">${r.nombre.toUpperCase()}</div>
+                                    <div class="text-slate-500 text-[9.5px]">Firma Autógrafa del Recurso</div>
+                                </div>
+                                <div>
+                                    <div class="w-52 border-b border-slate-800 mb-1.5"></div>
+                                    <div class="font-bold text-slate-900 font-brand">REPRESENTANTE LEGAL</div>
+                                    <div class="text-slate-500 text-[9.5px]">${rs}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    printArea.appendChild(page);
+                });
+
+                mostrarLoader(false);
+                
+                // Ejecutar impresión en lote
+                window.print();
+                printArea.innerHTML = ''; // Limpiar después de imprimir
+            }, 500);
+        }
+
+        // Auxiliares de Interfaz
+        function mostrarLoader(visible, mensaje = "") {
+            const loader = document.getElementById('loaderModal');
+            if (visible) {
+                loader.classList.remove('hidden');
+                if (mensaje) {
+                    loader.querySelector('p').innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-[#3284C6]"></i> ${mensaje}`;
+                }
+            } else {
+                loader.classList.add('hidden');
+            }
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

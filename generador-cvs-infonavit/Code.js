@@ -43,7 +43,8 @@ function cargarDatosSistema() {
     const configPredeterminada = [
       ["RAZON_SOCIAL", "Telat Mexico S.A. de C.V.", "Razón social oficial que aparece en el membrete"],
       ["LICITACION", "Licitación Abierta 033/CA/2026-109474", "Identificador del proceso del Infonavit"],
-      ["CORREO_CORPORATIVO_DOMINIO", "@telat-group.com", "Dominio predeterminado de correos"]
+      ["CORREO_CORPORATIVO_DOMINIO", "@telat-group.com", "Dominio predeterminado de correos"],
+      ["LOGO_URL", "https://telat.mx/assets/img/logo.png", "URL pública del logotipo oficial de Telat"]
     ];
     sheetConfig.getRange(2, 1, configPredeterminada.length, ENCABEZADOS_CONFIG.length).setValues(configPredeterminada);
     debloatSpreadsheet(sheetConfig, ENCABEZADOS_CONFIG.length);

@@ -93,8 +93,8 @@
 
     <!-- Pantalla de Carga Inicial -->
     <div id="loaderModal" class="fixed inset-0 bg-[#222221] z-[999] flex flex-col items-center justify-center text-white">
-        <div class="bg-[#3284C6] p-4 rounded-xl shadow-lg mb-4 animate-bounce">
-            <span class="text-2xl font-black font-brand tracking-wider">TELAT<span class="text-[#EB5B27]">.</span></span>
+        <div class="bg-white p-4 rounded-xl shadow-lg mb-4 animate-bounce flex items-center justify-center border border-slate-700">
+            <img id="loaderLogo" src="https://telat.mx/assets/img/logo.png" alt="Telat Logo" class="h-10 w-auto object-contain" onerror="this.onerror=null; this.src='https://placehold.co/140x50/dc2626/ffffff?text=TELAT';">
         </div>
         <h2 class="text-lg font-bold font-brand tracking-wide">Estableciendo conexión segura</h2>
         <p class="text-xs text-slate-400 mt-2 flex items-center gap-1.5">
@@ -108,8 +108,8 @@
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 <!-- Logotipo e Identidad -->
-                <div class="bg-white px-2.5 py-1.5 rounded-lg shadow-sm flex items-center justify-center border border-slate-200">
-                    <span class="text-lg font-black tracking-wider text-[#3284C6] font-brand">TELAT<span class="text-[#EB5B27]">.</span></span>
+                <div class="bg-white px-2.5 py-1.5 rounded-lg shadow-sm flex items-center justify-center border border-slate-200 h-9">
+                    <img id="appLogo" src="https://telat.mx/assets/img/logo.png" alt="Telat Logo" class="h-6 w-auto object-contain" onerror="this.onerror=null; this.src='https://placehold.co/120x40/dc2626/ffffff?text=TELAT';">
                 </div>
                 <div>
                     <h1 id="appTitle" class="text-base md:text-lg font-bold leading-tight font-brand flex items-center gap-2">
@@ -270,8 +270,8 @@
                     <!-- Encabezado Membretado Oficial -->
                     <div class="flex justify-between items-start border-b-2 border-[#3284C6] pb-4 mb-5">
                         <div class="flex items-center gap-3">
-                            <div class="bg-[#222221] px-3 py-1.5 rounded-lg flex items-center justify-center">
-                                <span class="text-lg font-brand font-black tracking-wider text-white">TELAT<span class="text-[#EB5B27]">.</span></span>
+                            <div class="bg-white px-2.5 py-1.5 rounded-lg flex items-center justify-center border border-slate-200 h-10 shadow-sm">
+                                <img id="cvLogo" src="https://telat.mx/assets/img/logo.png" alt="Logo Telat" class="h-7 w-auto object-contain" onerror="this.onerror=null; this.src='https://placehold.co/120x40/dc2626/ffffff?text=TELAT';">
                             </div>
                             <div>
                                 <div class="text-base font-black text-slate-900 tracking-wider font-brand">TELAT MEXICO</div>
@@ -432,10 +432,16 @@
         function aplicarConfiguracionDinamica() {
             const rs = configSistema["RAZON_SOCIAL"] || "Telat Mexico S.A. de C.V.";
             const lic = configSistema["LICITACION"] || "Licitación Abierta 033/CA/2026-109474";
+            const logo = configSistema["LOGO_URL"] || "https://telat.mx/assets/img/logo.png";
             
             // Título e identificaciones en la app
             document.getElementById('appTitle').innerHTML = `Generador de Expedientes y CVs <span class="text-[10px] bg-[#EB5B27]/20 text-[#FECA66] px-2 py-0.5 rounded-full border border-[#EB5B27]/40 font-mono font-bold">${lic}</span>`;
             document.getElementById('appSub').textContent = `${rs} • 56 Candidatos Mapeados`;
+            
+            // Logotipos dinámicos
+            document.getElementById('appLogo').src = logo;
+            document.getElementById('cvLogo').src = logo;
+            document.getElementById('loaderLogo').src = logo;
             
             // Membrete del CV
             document.getElementById('membreteRazonSocial').textContent = rs.toUpperCase();
@@ -448,7 +454,8 @@
             configSistema = {
                 "RAZON_SOCIAL": "Telat Mexico S.A. de C.V. (Local)",
                 "LICITACION": "Infonavit Demo 033/CA/2026",
-                "CORREO_CORPORATIVO_DOMINIO": "@telat-group.com"
+                "CORREO_CORPORATIVO_DOMINIO": "@telat-group.com",
+                "LOGO_URL": "https://telat.mx/assets/img/logo.png"
             };
             
             // Catálogo básico
@@ -778,6 +785,7 @@
 
                 const rs = configSistema["RAZON_SOCIAL"] || "Telat Mexico S.A. de C.V.";
                 const lic = configSistema["LICITACION"] || "Licitación Abierta 033/CA/2026-109474";
+                const logo = configSistema["LOGO_URL"] || "https://telat.mx/assets/img/logo.png";
 
                 // Renderizar los 56 perfiles continuos
                 datosRecursos.forEach(r => {
@@ -789,8 +797,8 @@
                         <div>
                             <div class="flex justify-between items-start border-b-2 border-[#3284C6] pb-4 mb-5">
                                 <div class="flex items-center gap-3">
-                                    <div class="bg-[#222221] px-3 py-1.5 rounded-lg flex items-center justify-center">
-                                        <span class="text-lg font-brand font-black tracking-wider text-white">TELAT<span class="text-[#EB5B27]">.</span></span>
+                                    <div class="bg-white px-2.5 py-1.5 rounded-lg flex items-center justify-center border border-slate-200 h-10 shadow-sm">
+                                        <img src="${logo}" alt="Logo Telat" class="h-7 w-auto object-contain" onerror="this.onerror=null; this.src='https://placehold.co/120x40/dc2626/ffffff?text=TELAT';">
                                     </div>
                                     <div>
                                         <div class="text-base font-brand font-black text-slate-900 tracking-wider">TELAT MEXICO</div>

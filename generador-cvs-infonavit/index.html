@@ -114,7 +114,6 @@
                 <div>
                     <h1 id="appTitle" class="text-base md:text-lg font-bold leading-tight font-brand flex items-center gap-2">
                         Generador de Expedientes y CVs
-                        <span class="text-[10px] bg-[#EB5B27]/20 text-[#FECA66] px-2 py-0.5 rounded-full border border-[#EB5B27]/40 font-mono font-bold">Infonavit 033/CA/2026</span>
                     </h1>
                     <p id="appSub" class="text-xs text-slate-400">Telat Mexico S.A. de C.V. • 56 Candidatos Mapeados</p>
                 </div>
@@ -434,8 +433,7 @@
             const lic = configSistema["LICITACION"] || "Licitación Abierta 033/CA/2026-109474";
             const logo = configSistema["LOGO_URL"] || "https://telat.mx/assets/img/logo.png";
             
-            // Título e identificaciones en la app
-            document.getElementById('appTitle').innerHTML = `Generador de Expedientes y CVs <span class="text-[10px] bg-[#EB5B27]/20 text-[#FECA66] px-2 py-0.5 rounded-full border border-[#EB5B27]/40 font-mono font-bold">${lic}</span>`;
+            document.getElementById('appTitle').textContent = "Generador de Expedientes y CVs";
             document.getElementById('appSub').textContent = `${rs} • 56 Candidatos Mapeados`;
             
             // Logotipos dinámicos

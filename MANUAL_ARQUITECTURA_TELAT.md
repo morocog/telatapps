@@ -304,4 +304,16 @@ Para aplicaciones web en Google Apps Script que requieran restricciones de acces
    - Queda estrictamente prohibido usar índices numéricos estáticos (ej. `row[15]`) para leer o escribir columnas críticas como `Foto_URL`.
    - Mapea siempre buscando el índice dinámico por nombre (`headers.indexOf("Foto_URL")`). Esto asegura que si se agregan, eliminan o reordenan columnas (como `Plantilla`), las columnas críticas jamás se desplacen ni queden desfasadas en la base de datos.
 
+---
+
+## 🏛️ REGISTRO DE DESPLIEGUES INMUTABLES EN PRODUCCIÓN (GAS)
+
+> [!CAUTION]
+> **REGLA DE GOBERNANZA INMUTABLE:** JAMÁS crees nuevos despliegues (`clasp deploy` / nueva URL) para las siguientes aplicaciones. Cualquier actualización debe realizarse versionando (`clasp push` + "Nueva Versión") sobre el despliegue canónico existente.
+
+| Aplicación | Repositorio | Deployment ID Inmutable | URL de Producción Oficial | Base de Datos (Sheets) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Ecosistema de Capacitación (14 Dashboards MGCIC 3.0)** | `training-needs/dashboard-capacitacion` | `AKfycbxTgKtAJiILAutEEH6O-OiX3eN1U59J4LU95lmI86_rYTI-ER2gqM5cxOMTaZDA75klAw` | [Ver App Producción](https://script.google.com/macros/s/AKfycbxTgKtAJiILAutEEH6O-OiX3eN1U59J4LU95lmI86_rYTI-ER2gqM5cxOMTaZDA75klAw/exec) | [Abrir Sheet](https://docs.google.com/spreadsheets/d/11bO3zfhpgoyuPLE0i0A_szLLsy4btXLBkuaeVuL4u3w/edit) |
+
+
 

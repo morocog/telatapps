@@ -436,7 +436,7 @@
                                 <img id="cvLogo" src="https://telat.mx/assets/img/logo.png" alt="Logo Telat" class="h-7 w-auto object-contain" onerror="this.onerror=null; this.src='https://placehold.co/120x40/dc2626/ffffff?text=TELAT';">
                             </div>
                             <div>
-                                <div class="text-base font-black text-slate-900 tracking-wider font-brand">TELAT MEXICO</div>
+                                <div id="membreteTituloPrincipal" class="text-base font-black text-slate-900 tracking-wider font-brand">TELAT MEXICO</div>
                                 <div id="membreteRazonSocial" class="text-[10px] text-[#3284C6] font-bold uppercase tracking-widest">TELAT MEXICO S.A. DE C.V.</div>
                             </div>
                         </div>
@@ -648,6 +648,7 @@
         }
 
         function aplicarConfiguracionDinamica() {
+            const titMembrete = configSistema["TITULO_MEMBRETE"] || "TELAT MEXICO";
             const rs = configSistema["RAZON_SOCIAL"] || "Telat Mexico S.A. de C.V.";
             const lic = configSistema["LICITACION"] || "Licitación Abierta 033/CA/2026-109474";
             const logo = configSistema["LOGO_URL"] || "https://telat.mx/assets/img/logo.png";
@@ -661,6 +662,8 @@
             document.getElementById('loaderLogo').src = logo;
             
             // Membrete del CV
+            const elTit = document.getElementById('membreteTituloPrincipal');
+            if (elTit) elTit.textContent = titMembrete.toUpperCase();
             document.getElementById('membreteRazonSocial').textContent = rs.toUpperCase();
             document.getElementById('firmaRazonSocial').textContent = rs;
             document.getElementById('cvLicitacionBadge').textContent = lic;
@@ -669,6 +672,7 @@
         function iniciarModoFallbackLocal() {
             // Inicializar base de datos con catálogo vacío como fallback
             configSistema = {
+                "TITULO_MEMBRETE": "TELAT MEXICO",
                 "RAZON_SOCIAL": "Telat Mexico S.A. de C.V. (Local)",
                 "LICITACION": "Infonavit Demo 033/CA/2026",
                 "CORREO_CORPORATIVO_DOMINIO": "@telat-group.com",

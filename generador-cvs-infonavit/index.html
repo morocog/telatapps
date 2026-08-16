@@ -53,6 +53,12 @@
             .no-print { display: none !important; }
             
             /* Forzar visualización de fondo y colores en el navegador */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
             body, html { 
                 background: white !important; 
                 color: #1e293b !important;
@@ -77,7 +83,7 @@
                 page-break-after: always !important; 
                 page-break-inside: avoid !important;
                 margin: 0 auto !important; 
-                padding: 10mm 15mm !important;
+                padding: 10mm 15mm 8mm 15mm !important;
                 box-shadow: none !important;
                 border: none !important;
                 width: 210mm !important; /* Ancho seguro universal */
@@ -88,8 +94,6 @@
                 flex-direction: column !important;
                 justify-content: space-between !important;
                 box-sizing: border-box !important;
-                
-                /* Tipografía más grande para aprovechar todo el espacio y máxima legibilidad */
                 font-size: 11px !important;
             }
 
@@ -99,16 +103,37 @@
 
             .cv-page h3 {
                 font-size: 11.5px !important;
+                padding-bottom: 2px !important;
+                margin-bottom: 4px !important;
             }
 
             .cv-page p, .cv-page li {
                 font-size: 10.5px !important;
+                line-height: 1.4 !important;
+            }
+
+            .cv-page #cvPerfilTexto {
+                font-size: 10.5px !important;
                 line-height: 1.45 !important;
+                margin-bottom: 6px !important;
+            }
+
+            .cv-page #cvExperienciasContainer > div {
+                margin-bottom: 5px !important;
+            }
+
+            .cv-page #cvExperienciasContainer ul {
+                margin-top: 1.5px !important;
+            }
+
+            .cv-page #cvSkills {
+                gap: 5px !important;
+                margin-top: 3px !important;
             }
 
             .cv-page #cvSkills span {
-                font-size: 9px !important;
-                padding: 2px 5px !important;
+                font-size: 9.5px !important;
+                padding: 2.5px 6px !important;
             }
 
             .cv-page .italic {
@@ -118,11 +143,56 @@
             .cv-page .mt-auto p {
                 font-size: 9px !important;
                 line-height: 1.3 !important;
-                margin-bottom: 8px !important;
+                margin-bottom: 6px !important;
             }
 
             .cv-page .mt-auto .flex {
                 font-size: 9.5px !important;
+            }
+
+            .cv-page img {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .cv-page img.hidden {
+                display: none !important;
+                visibility: hidden !important;
+            }
+
+            .cv-page #cvFotoContainer {
+                position: relative !important;
+                background-color: transparent !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .cv-page #cvFotoContainer img {
+                position: absolute !important;
+                inset: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: cover !important;
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                z-index: 10 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .cv-page #cvFotoContainer img.hidden {
+                display: none !important;
+                visibility: hidden !important;
+                z-index: 0 !important;
+            }
+
+            .cv-page #cvFotoFallback {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
         }
         
@@ -216,11 +286,56 @@
                     <span>Toda modificación se <strong>sincroniza en segundo plano</strong> directamente en tu base de datos de Google Sheets.</span>
                 </div>
 
-                <!-- Bloque 1: Datos Personales -->
+                <!-- Bloque 1: Datos Personales y Fotografía -->
                 <div class="space-y-3">
                     <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-[#3284C6] flex items-center gap-1.5 font-brand">
                         <i data-lucide="user" class="w-3.5 h-3.5"></i> Datos Generales del Candidato
                     </h4>
+
+                    <!-- Widget de Fotografía Ejecutiva con Soporte Ctrl+V y Recentrado -->
+                    <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
+                                <i data-lucide="camera" class="w-3.5 h-3.5 text-[#3284C6]"></i> Fotografía Ejecutiva
+                            </label>
+                            <span class="text-[10px] text-slate-500 font-semibold bg-white px-2 py-0.5 rounded border border-slate-200 flex items-center gap-1">
+                                <i data-lucide="clipboard" class="w-3 h-3 text-[#3284C6]"></i> Ctrl+V Activo
+                            </span>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <!-- Miniatura en Formulario (Click para abrir editor de encuadre) -->
+                            <div id="formFotoContainer" onclick="abrirEncuadreActual()" title="Clic para recentrar / ajustar encuadre" class="w-14 h-16 rounded-lg overflow-hidden border border-slate-300 bg-white flex items-center justify-center shrink-0 shadow-inner relative cursor-pointer hover:ring-2 hover:ring-[#3284C6] transition group">
+                                <img id="formFotoImg" src="" alt="Foto" class="w-full h-full object-cover hidden">
+                                <div id="formFotoFallback" class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 text-xs font-bold select-none">
+                                    <span id="formFotoIniciales" class="font-brand font-black text-sm">--</span>
+                                </div>
+                                <div id="fotoUploadSpinner" class="absolute inset-0 bg-slate-900/70 hidden flex items-center justify-center text-white">
+                                    <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-white"></i>
+                                </div>
+                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[9px] font-bold transition">
+                                    <i data-lucide="move" class="w-3.5 h-3.5"></i>
+                                </div>
+                            </div>
+
+                            <!-- Acciones de Fotografía -->
+                            <div class="flex-1 space-y-1.5">
+                                <input type="file" id="inpFotoFile" accept="image/png, image/jpeg, image/jpg, image/webp" class="hidden" onchange="cargarArchivoEnEditor(event)">
+                                <div class="flex flex-wrap gap-1.5">
+                                    <button type="button" onclick="document.getElementById('inpFotoFile').click()" class="bg-[#3284C6] hover:bg-[#286ca3] text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition shadow-sm">
+                                        <i data-lucide="upload" class="w-3.5 h-3.5"></i> Subir
+                                    </button>
+                                    <button type="button" id="btnEditarEncuadre" onclick="abrirEncuadreActual()" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition hidden">
+                                        <i data-lucide="move" class="w-3.5 h-3.5 text-[#3284C6]"></i> Recentrar
+                                    </button>
+                                    <button type="button" id="btnEliminarFoto" onclick="confirmarEliminarFoto()" class="bg-white hover:bg-red-50 text-slate-600 hover:text-red-600 border border-slate-300 hover:border-red-200 text-[11px] font-semibold px-2 py-1.5 rounded-lg flex items-center gap-1 transition hidden">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
+                                <p class="text-[10px] text-slate-500 leading-tight">Pega un screenshot con <kbd class="px-1 py-0.5 bg-slate-200 rounded font-mono font-semibold text-slate-700">Ctrl+V</kbd> o sube un archivo.</p>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Nombre Completo:</label>
@@ -284,6 +399,10 @@
                         <label class="block font-semibold text-slate-700 mb-1">Empresa Anterior 2 (Razón Social y Período):</label>
                         <input type="text" id="inpEmpresa2" oninput="actualizarCampo('empresa2', this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#3284C6] focus:outline-none">
                     </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Empresa Anterior 3 (Opcional - Razón Social y Período):</label>
+                        <input type="text" id="inpEmpresa3" oninput="actualizarCampo('empresa3', this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#3284C6] focus:outline-none" placeholder="Ej: Konecta México (2019 - 2021)">
+                    </div>
                 </div>
 
             </div>
@@ -329,21 +448,38 @@
                         </div>
                     </div>
 
-                    <!-- Ficha Técnica de Datos -->
-                    <div class="bg-[#FBFBFD] border border-slate-200 p-3 rounded-xl mb-3.5 flex justify-between items-start shadow-sm">
-                        <div>
-                            <h2 id="cvNombre" class="text-xl font-black text-slate-900 mb-0.5 font-brand">CARGANDO NOMBRE...</h2>
-                            <p id="cvPuesto" class="text-xs font-bold text-[#EB5B27] uppercase tracking-wide">PUESTO O ROL OPERATIVO</p>
-                            <div class="mt-2 text-[11px] text-slate-600 space-y-0.5">
-                                <div><span class="font-bold text-slate-700">RFC/CURP:</span> <span id="cvRfc" class="font-semibold">Cargando...</span></div>
-                                <div><span class="font-bold text-slate-700">Teléfono:</span> <span id="cvTelefono">Cargando...</span> | <span class="font-bold text-slate-700">Correo:</span> <span id="cvCorreo">Cargando...</span></div>
+                    <!-- Ficha Técnica de Datos con Fotografía Ejecutiva (Estilo Dinámico por Nivel) -->
+                    <div id="cvFichaData" class="bg-[#FBFBFD] border border-slate-200 p-3 rounded-xl mb-3.5 flex items-center justify-between shadow-sm gap-3.5 transition-all">
+                        <!-- Fotografía Ejecutiva / Fallback Iniciales -->
+                        <div class="shrink-0">
+                            <div id="cvFotoContainer" class="w-[74px] h-[88px] rounded-xl overflow-hidden border-2 border-slate-200 shadow-sm bg-slate-100 flex items-center justify-center relative">
+                                <img id="cvFotoImg" src="" alt="" class="w-full h-full object-cover hidden">
+                                <div id="cvFotoFallback" class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#3284C6] to-[#1e293b] text-white p-1 text-center select-none">
+                                    <span id="cvFotoIniciales" class="font-black text-lg tracking-wider font-brand">CM</span>
+                                    <span class="text-[7px] uppercase font-bold text-blue-200 mt-0.5 tracking-tighter">Recurso</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="text-right border-l border-slate-200 pl-4 text-[10px] min-w-[170px]">
-                            <div class="font-bold text-slate-500 uppercase mb-1">Acreditación Académica</div>
-                            <div id="cvEstudios" class="font-bold text-slate-800 text-xs">Cargando Estudios...</div>
+
+                        <!-- Bloque Central: Nombre Completo y Cargo sin Truncamiento -->
+                        <div class="flex-1 min-w-0 pr-1">
+                            <div class="mb-1 flex items-center gap-1.5">
+                                <span id="cvNivelBadge" class="bg-[#3284C6] text-white font-bold px-2 py-0.5 rounded text-[8.5px] uppercase tracking-wider font-mono">OPERACIÓN EN LÍNEA</span>
+                            </div>
+                            <h2 id="cvNombre" class="text-base md:text-[17px] font-black text-slate-900 leading-tight font-brand break-words whitespace-normal">CARGANDO NOMBRE...</h2>
+                            <p id="cvPuesto" class="text-xs font-bold text-[#EB5B27] uppercase tracking-wide mt-1">PUESTO O ROL OPERATIVO</p>
+                            <div id="cvMetaBlock" class="mt-1.5 text-[10.5px] text-slate-600 space-y-0.5">
+                                <div><span class="font-bold text-slate-700">RFC/CURP:</span> <span id="cvRfc" class="font-semibold">Cargando...</span></div>
+                                <div><span class="font-bold text-slate-700">Tel:</span> <span id="cvTelefono">Cargando...</span> | <span class="font-bold text-slate-700">Correo:</span> <span id="cvCorreo">Cargando...</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Bloque Derecho: Acreditación Académica -->
+                        <div id="cvAcademicaBlock" class="text-right border-l border-slate-200 pl-3 text-[10px] min-w-[160px] max-w-[180px] shrink-0">
+                            <div id="cvAcademicaTitle" class="font-bold text-slate-500 uppercase mb-0.5">Acreditación Académica</div>
+                            <div id="cvEstudios" class="font-bold text-slate-800 text-[11px] leading-tight break-words">Cargando Estudios...</div>
                             <div id="cvCedula" class="text-slate-600 mt-0.5">Cargando Cédula...</div>
-                            <div id="cvItilBadge" class="mt-2 inline-block bg-blue-50 text-[#3284C6] font-bold px-2 py-0.5 rounded border border-blue-200">
+                            <div id="cvItilBadge" class="mt-1.5 inline-block bg-blue-50 text-[#3284C6] font-bold px-2 py-0.5 rounded border border-blue-200 text-[9.5px]">
                                 ITIL v4 Foundation
                             </div>
                         </div>
@@ -351,50 +487,28 @@
 
                     <!-- Perfil Profesional -->
                     <div class="mb-3.5">
-                        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1 mb-1.5 text-[#3284C6] flex items-center gap-1.5 font-brand">
+                        <h3 id="cvSecPerfilTitle" class="text-xs font-bold uppercase tracking-wider border-b border-slate-200 pb-1 mb-1.5 text-[#3284C6] flex items-center gap-1.5 font-brand">
                             <i data-lucide="user-check" class="w-3.5 h-3.5"></i> Perfil Profesional y Competencias
                         </h3>
-                        <p id="cvPerfilTexto" class="text-[11px] text-slate-700 leading-relaxed text-justify">
+                        <p id="cvPerfilTexto" class="text-[10.5px] text-slate-700 leading-relaxed text-justify">
                             Cargando descripción adaptada dinámicamente...
                         </p>
                     </div>
 
-                    <!-- Experiencia Laboral -->
+                    <!-- Experiencia Laboral Dinámica (2 a 3 Empleos en Call Centers CDMX) -->
                     <div class="mb-3.5">
-                        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2 text-[#3284C6] flex items-center gap-1.5 font-brand">
+                        <h3 id="cvSecTrayectoriaTitle" class="text-xs font-bold uppercase tracking-wider border-b border-slate-200 pb-1 mb-2 text-[#3284C6] flex items-center gap-1.5 font-brand">
                             <i data-lucide="briefcase" class="w-3.5 h-3.5"></i> Trayectoria Laboral Relevante (Mesa de Servicio / TI)
                         </h3>
                         
-                        <div class="space-y-2.5 text-[11px]">
-                            <!-- Empleo 1 -->
-                            <div class="border-l-2 border-[#3284C6] pl-3">
-                                <div class="flex justify-between font-bold text-slate-800">
-                                    <span id="cvEmpresa1">Cargando Empresa...</span>
-                                    <span id="cvPeriodo1" class="text-slate-500 font-normal">Período</span>
-                                </div>
-                                <div id="cvPuestoEmp1" class="text-slate-600 italic font-medium mb-1">Especialista Operativo / Soporte TI</div>
-                                <ul id="cvFunciones1" class="list-disc list-inside text-slate-600 space-y-1 text-[10.5px]">
-                                    <!-- Funciones dinámicas -->
-                                </ul>
-                            </div>
-
-                            <!-- Empleo 2 -->
-                            <div class="border-l-2 border-slate-300 pl-3">
-                                <div class="flex justify-between font-bold text-slate-800">
-                                    <span id="cvEmpresa2">Cargando Empresa...</span>
-                                    <span id="cvPeriodo2" class="text-slate-500 font-normal">Período</span>
-                                </div>
-                                <div id="cvPuestoEmp2" class="text-slate-600 italic font-medium mb-1">Analista de Servicio</div>
-                                <ul id="cvFunciones2" class="list-disc list-inside text-slate-600 space-y-1 text-[10.5px]">
-                                    <!-- Funciones dinámicas -->
-                                </ul>
-                            </div>
+                        <div id="cvExperienciasContainer" class="space-y-2 text-[10.5px]">
+                            <!-- Empleos inyectados dinámicamente -->
                         </div>
                     </div>
 
                     <!-- Habilidades -->
                     <div class="mb-3.5">
-                        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1 mb-1.5 text-[#3284C6] flex items-center gap-1.5 font-brand">
+                        <h3 id="cvSecSkillsTitle" class="text-xs font-bold uppercase tracking-wider border-b border-slate-200 pb-1 mb-1.5 text-[#3284C6] flex items-center gap-1.5 font-brand">
                             <i data-lucide="cpu" class="w-3.5 h-3.5"></i> Habilidades Técnicas y Herramientas Manejadas
                         </h3>
                         <div id="cvSkills" class="flex flex-wrap gap-1.5 text-[10.5px]">
@@ -427,6 +541,67 @@
         </section>
 
     </main>
+
+    <!-- Modal Interactivo de Encuadre, Zoom y Recentrado de Foto -->
+    <div id="cropModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[1000] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 flex flex-col">
+            <!-- Header Modal -->
+            <div class="bg-[#222221] text-white px-5 py-3.5 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="crop" class="w-4 h-4 text-[#3284C6]"></i>
+                    <h3 class="text-sm font-bold font-brand tracking-wide">Encuadre y Calidad de Foto Ejecutiva</h3>
+                </div>
+                <button type="button" onclick="cerrarCropModal()" class="text-slate-400 hover:text-white transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Body Modal -->
+            <div class="p-5 space-y-4">
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Arrastra la imagen con el cursor para <strong>recentrar el rostro</strong> o ajusta el <strong>zoom</strong> para lograr el encuadre ejecutivo perfecto.
+                </p>
+
+                <!-- Contenedor del Canvas Interactivo con Guía 5:6 -->
+                <div class="flex justify-center">
+                    <div id="cropContainer" class="relative w-[220px] h-[264px] rounded-xl overflow-hidden border-2 border-[#3284C6] shadow-md bg-slate-900 cursor-grab active:cursor-grabbing select-none flex items-center justify-center">
+                        <canvas id="cropCanvas" width="400" height="480" class="w-full h-full object-contain pointer-events-none"></canvas>
+                        <!-- Guías visuales -->
+                        <div class="absolute inset-0 border border-white/20 pointer-events-none rounded-xl"></div>
+                        <div class="absolute inset-x-7 top-5 bottom-8 border border-dashed border-[#3284C6]/40 rounded-full pointer-events-none"></div>
+                    </div>
+                </div>
+
+                <!-- Controles: Zoom y Mejora de Nitidez -->
+                <div class="space-y-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="font-semibold text-slate-700 flex items-center gap-1">
+                            <i data-lucide="zoom-in" class="w-3.5 h-3.5 text-[#3284C6]"></i> Zoom:
+                        </span>
+                        <input type="range" id="cropZoomSlider" min="1" max="3" step="0.05" value="1" oninput="actualizarZoom(this.value)" class="flex-1 accent-[#3284C6] h-1.5 bg-slate-300 rounded-lg cursor-pointer">
+                        <span id="cropZoomVal" class="font-mono font-bold text-slate-600 w-9 text-right">1.0x</span>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1 border-t border-slate-200">
+                        <button type="button" id="btnAutoEnhance" onclick="alternarFiltroNitidez()" class="text-[11px] font-semibold text-slate-700 hover:text-[#3284C6] bg-white hover:bg-blue-50 border border-slate-300 px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#FECA66]"></i> <span id="txtFiltroNitidez">Optimizar Nitidez</span>
+                        </button>
+                        <span class="text-[10px] text-slate-400 font-medium">💡 Compatible con <kbd class="px-1 py-0.5 bg-slate-200 rounded font-mono font-bold text-slate-700">Ctrl + V</kbd></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Modal -->
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2.5">
+                <button type="button" onclick="cerrarCropModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition">
+                    Cancelar
+                </button>
+                <button type="button" onclick="guardarEncuadreFinal()" class="px-4 py-2 text-xs font-bold text-white bg-[#3284C6] hover:bg-[#286ca3] rounded-xl flex items-center gap-1.5 shadow transition">
+                    <i data-lucide="check" class="w-4 h-4"></i> Guardar y Aplicar
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Contenedor Único y Exclusivo de Impresión (Oculto en Pantalla Web, Activo en Print) -->
     <div id="printOutputArea" class="hidden print-container"></div>
@@ -547,15 +722,16 @@
             document.getElementById('badgeRequisitos').textContent = r.reqText || "Requisito Estándar";
             document.getElementById('lblProgreso').textContent = `Recurso ${r.id} de ${datosRecursos.length}`;
 
-            document.getElementById('inpNombre').value = r.nombre;
-            document.getElementById('inpRfc').value = r.rfc;
-            document.getElementById('inpTelefono').value = r.telefono;
-            document.getElementById('inpCorreo').value = r.correo;
-            document.getElementById('inpEstudios').value = r.estudios;
-            document.getElementById('inpCedula').value = r.cedula;
-            document.getElementById('inpItil').value = r.itil;
-            document.getElementById('inpEmpresa1').value = r.empresa1;
-            document.getElementById('inpEmpresa2').value = r.empresa2;
+            document.getElementById('inpNombre').value = r.nombre || "";
+            document.getElementById('inpRfc').value = r.rfc || "";
+            document.getElementById('inpTelefono').value = r.telefono || "";
+            document.getElementById('inpCorreo').value = r.correo || "";
+            document.getElementById('inpEstudios').value = r.estudios || "";
+            document.getElementById('inpCedula').value = r.cedula || "";
+            document.getElementById('inpItil').value = r.itil || "";
+            document.getElementById('inpEmpresa1').value = r.empresa1 || "";
+            document.getElementById('inpEmpresa2').value = r.empresa2 || "";
+            document.getElementById('inpEmpresa3').value = r.empresa3 || "";
 
             renderizarCV(r);
         }
@@ -621,120 +797,591 @@
             }
         }
 
-        // 3. Generación de Contenido Parafraseado y Estilos
+        // =========================================================================
+        // 3. GENERADOR AVANZADO DE PERFILES Y TRAYECTORIAS REALISTAS (56 PERFILES ÚNICOS)
+        // =========================================================================
+        const PERFILES_EXHAUSTIVOS_56 = {
+            1: "Profesional senior con más de 8 años de experiencia comprobada en la dirección estratégica y gobernanza operativa de Centros de Contacto y Mesas de Ayuda de misión crítica para el sector gubernamental y financiero. Certificado en ITIL v4 Managing Professional y marcos COBIT/PMP, con liderazgo demostrado en la administración de contratos con ANS superiores al 98%, gestión presupuestal de infraestructura tecnológica, auditorías de calidad y coordinación de plantillas operativas multidisciplinarias mayores a 60 posiciones.",
+            2: "Supervisor de operaciones con más de 4 años de trayectoria dirigiendo turnos en Mesas de Ayuda multicanal de alto volumen. Especialista en optimización de métricas ACD (TMO, FCR, Adherencia) y coaching de personal bajo lineamientos ITIL v4 Foundation. Habilidad comprobada en la gestión de crisis operativas, distribución equilibrada de cargas de trabajo y aseguramiento del cumplimiento de los niveles de servicio contractuales.",
+            3: "Líder de operaciones especializado en Control de Acceso Lógico, Gestión de Identidades y Ciberseguridad Operativa con 4 años de experiencia en BPOs corporativos. Acreditado en ITIL v4, con amplio dominio en la supervisión de procesos de aprovisionamiento en Active Directory, cumplimiento de normativas de auditoría interna (SOX / ISO 27001) y mitigación proactiva de brechas de seguridad en cuentas institucionales.",
+            4: "Supervisor de Soporte Técnico en Sitio y Microinformática con sólida experiencia coordinando cuadrillas de campo para el mantenimiento de parques informáticos mayores a 1,500 estaciones de trabajo. Especialista en control de inventarios, gestión de garantías con fabricantes, despliegue masivo de imágenes de SO y resolución de fallas de hardware bajo estrictos ANS de atención presencial.",
+            5: "Coordinador de operaciones telefónicas y conmutación central con más de 5 años gestionando plataformas de telefonía IP, PBX corporativo y troncales SIP/E1. Enfoque estratégico en la administración del tráfico de llamadas entrantes en horarios pico, aseguramiento de la disponibilidad de las líneas de enlace institucional y capacitación de operadores en etiqueta ejecutiva.",
+            6: "Supervisor de Aseguramiento de Calidad y Mejora Continua en Contact Centers, certificado en normas COPC e ITIL v4. Especialista en la implementación de matrices de evaluación transaccional, sesiones de calibración interdepartamentales, análisis de causa de insatisfacción del usuario y diseño de planes de acción correctiva (ciclo PDCA) para elevar el CSAT global.",
+            7: "Ingeniero especialista en Inteligencia Artificial Generativa, Prompt Engineering y Automatización de Canales de Atención. Certificado por Google Cloud, con experiencia en el diseño y parametrización de prompts para asistentes virtuales de primer contacto, integración RAG con repositorios de conocimiento institucionales y análisis semántico para el desvío eficiente de solicitudes recurrentes.",
+            8: "Gestor de Incidentes Mayores (MIM) Nivel IV con acreditación ITIL v4, especializado en la conducción técnica de comités de crisis (War Rooms) para fallas de severidad crítica P1. Habilidad comprobada para articular equipos de redes, bases de datos y desarrollo, logrando la restauración ágil de plataformas transaccionales y minimizando el impacto en la operación del usuario.",
+            9: "Analista Senior Nivel IV experto en Metodologías de Análisis de Causa Raíz (RCA) como Diagramas de Ishikawa, 5 Porqués y Análisis de Modos de Falla (FMEA). Experiencia destacada en la investigación forense de caídas de servicio, redacción de informes técnicos ejecutivos post-mortem y establecimiento de barreras preventivas definitivas.",
+            10: "Especialista en Gestión de Problemas ITIL y Diagnóstico de Arquitecturas de Software. Amplio dominio en la correlación analítica de incidentes repetitivos, identificación de defectos estructurales en aplicaciones corporativas y gestión del ciclo de vida del Error Conocido (KEDB) en plataformas ITSM corporativas.",
+            11: "Ingeniero Nivel IV de Enlace Tecnológico con sólida experiencia en la coordinación operativa entre la Mesa de Ayuda y los equipos de Infraestructura Cloud, Servidores Windows/Linux y Telecomunicaciones. Experto en diagnóstico de trazas de red, conectividad de bases de datos y validación de parches de seguridad.",
+            12: "Analista Especializado Nivel IV en Planes de Continuidad del Negocio (BCP/DRP) y Resiliencia Operativa. Trayectoria liderando pruebas de conmutación por falla, auditorías de recuperación ante desastres y diseño de procedimientos de contingencia para la operación ininterrumpida de servicios de atención.",
+            13: "Analista de Aseguramiento de Calidad en Contact Centers con experiencia en auditoría sistemática de interacciones de voz y canales digitales bajo el modelo COPC. Experto en muestreo estadístico, detección de necesidades de refuerzo operativo y retroalimentación constructiva para el incremento del First Contact Resolution (FCR).",
+            14: "Especialista en Capacitación, Diseño Instruccional y Desarrollo del Talento para operaciones BPO de soporte tecnológico. Habilidad en la creación de planes de onboarding ágiles, reducción de curvas de aprendizaje en nuevas generaciones y diseño de evaluaciones prácticas basadas en escenarios reales de soporte.",
+            15: "Ingeniero de Business Intelligence y Analítica de Operaciones. Experto en el modelado de datos en Power BI, lenguaje DAX, consultas SQL complejas y automatización de tableros de control en tiempo real para el seguimiento minucioso de ANS, ocupación y productividad de la Mesa de Ayuda.",
+            16: "Especialista en Gestión Documental, Estandarización de Procesos y Gobernanza de Conocimiento bajo la metodología KCS (Knowledge-Centered Service). Dominio en la redacción de procedimientos operativos estandarizados (SOPs), guías rápidas de resolución y mantenimiento de bibliotecas de conocimiento.",
+            17: "Ejecutivo de Mesa de Servicio con enfoque prioritario en la resolución en primer contacto (FCR >88%) y tipificación precisa en herramientas ITSM. Destreza en el diagnóstico telefónico de fallas comunes en sistemas operativos Windows, paquetería de oficina y accesos a portales corporativos.",
+            18: "Analista de Soporte de Primer Nivel especializado en el ecosistema Microsoft 365 (Teams, Outlook, OneDrive y SharePoint). Experiencia en la configuración remota de perfiles de correo, resolución de conflictos de sincronización y asistencia en navegación de aplicativos institucionales.",
+            19: "Especialista operativo en diagnóstico remoto de conectividad, redes virtuales privadas (VPN) y clientes de escritorio remoto. Habilidad comprobada para guiar paso a paso al usuario en la resolución de problemas de comunicación y acceso seguro a la intranet corporativa.",
+            20: "Agente de Mesa de Ayuda con destacada velocidad de captura, escucha activa y capacidad de trabajo bajo alta demanda en horarios pico. Enfoque riguroso en la documentación clara de evidencias en cada ticket para facilitar el historial de atención del usuario.",
+            21: "Analista de primer contacto con destreza en la canalización estructurada y escalamiento oportuno de solicitudes complejas hacia segundo nivel de soporte, garantizando el cumplimiento de los tiempos de respuesta pactados en los Acuerdos de Nivel de Servicio.",
+            22: "Operador de atención multicanal con experiencia simultánea en gestión de llamadas entrantes, chat en línea y recepción de requerimientos vía correo electrónico, manteniendo en todo momento altos estándares de cortesía y calidad en la comunicación.",
+            23: "Ejecutivo de soporte técnico telefónico con enfoque en optimización del Tiempo Medio de Operación (TMO) sin comprometer la efectividad ni la satisfacción del usuario (CSAT superior al 92%), aplicando guías rápidas de resolución estandarizadas.",
+            24: "Especialista de atención en mesa de ayuda orientado al soporte funcional de portales web institucionales, módulos de autoservicio para derechohabientes y validación de errores en formularios electrónicos corporativos.",
+            25: "Analista operativo con más de dos años de trayectoria en mesas de servicio para entidades gubernamentales, con estricto apego a procedimientos operativos estándar, confidencialidad de la información y normativas de servicio al cliente.",
+            26: "Agente de soporte técnico de primer contacto con experiencia en resolución de incidencias de software de oficina, drivers de impresión local/red y soporte a herramientas de visualización de documentos y firmas digitales.",
+            27: "Ejecutivo de atención al usuario enfocado en el seguimiento proactivo de tickets pendientes, validación de soluciones con el usuario final y retroalimentación continua para el cierre definitivo de solicitudes en el sistema de gestión.",
+            28: "Analista de soporte técnico con habilidades de comunicación formal y etiqueta ejecutiva, con experiencia en la atención prioritaria de requerimientos tecnológicos para mandos medios y directivos de la organización.",
+            29: "Especialista en resolución de incidentes relacionados con navegadores web (Microsoft Edge, Google Chrome), certificados de seguridad SSL, componentes Java y compatibilidad de aplicaciones heredadas institucionales.",
+            30: "Operador de mesa de ayuda con rigurosa disciplina en el levantamiento de folios, categorización exacta del catálogo de servicios y recopilación exhaustiva de capturas de pantalla y registros de error en cada interacción.",
+            31: "Analista de primer nivel con capacidad analítica para la identificación oportuna de patrones de fallas masivas, notificando de inmediato a la supervisión operativa para la activación de protocolos de contingencia.",
+            32: "Ejecutivo de soporte remoto con destreza en el uso de herramientas de asistencia en tiempo real (Quick Assist, AnyDesk), ejecutando limpiezas de caché, reconfiguración de perfiles temporales y pruebas de funcionalidad básica.",
+            33: "Agente de servicio al cliente con formación en manejo de situaciones de estrés y resolución de objeciones, enfocado en brindar una experiencia de usuario empática, clara y orientada a resultados desde el primer minuto.",
+            34: "Analista operativo con experiencia en soporte a procesos de firma electrónica avanzada, sellos digitales y acceso a módulos administrativos, asistiendo a los usuarios en la correcta configuración de tokens y credenciales.",
+            35: "Operador de Mesa de Servicio con habilidad en la navegación ágil entre múltiples pantallas y sistemas centrales durante la llamada, garantizando un registro simultáneo eficiente y un servicio dinámico.",
+            36: "Especialista operativo en Control de Acceso Lógico (CAL) con amplio dominio en la administración de cuentas de usuario, reseteo seguro de credenciales y desbloqueo de sesiones en Directorio Activo (Active Directory).",
+            37: "Analista de accesos enfocado en la validación estricta de formatos de autorización institucional y asignación de permisos de red basados en el principio de mínimo privilegio y normativas de seguridad de la información.",
+            38: "Operador de gestión de identidades con experiencia en el aprovisionamiento de accesos a aplicaciones centrales, verificación de doble factor de autenticación (MFA) y enrolamiento de dispositivos móviles corporativos.",
+            39: "Analista de accesos lógicos con destreza en el procesamiento de altas masivas de personal, asignación de membresías a grupos de seguridad y habilitación de buzones de correo electrónico institucional en Exchange.",
+            40: "Especialista en control de cuentas de red con experiencia en la gestión de transferencias de área, modificación de perfiles de usuario y reasignación de permisos en carpetas compartidas y sistemas de archivos NTFS.",
+            41: "Analista operativo de seguridad lógica enfocado en la ejecución inmediata de solicitudes de baja definitiva de personal, desactivación de credenciales y congelamiento preventivo de cuentas inactivas.",
+            42: "Operador de mesa de accesos con experiencia en la depuración de cuentas huérfanas, auditorías periódicas de usuarios con privilegios elevados y registro de trazabilidad en sistemas de ticketing.",
+            43: "Especialista en atención telefónica de incidentes de bloqueo de contraseñas, aplicando rigurosos filtros de validación de identidad del usuario previo a cualquier modificación de accesos en el sistema.",
+            44: "Analista de Control de Acceso Lógico con manejo de directivas de grupo (GPO), soporte a políticas de caducidad de contraseñas y asistencia en la sincronización de credenciales con plataformas en la nube.",
+            45: "Operador de accesos institucionales con experiencia en la asignación de licencias de Microsoft 365, permisos en portales internos y gestión de accesos remotos a través de VPN institucional.",
+            46: "Analista de gestión de identidades con riguroso apego a los lineamientos de auditoría interna y resguardo de bitácoras de modificación de privilegios para revisiones de cumplimiento normativo.",
+            47: "Técnico de Soporte en Sitio (Microinformática) con experiencia en diagnóstico físico, mantenimiento preventivo/correctivo de computadoras de escritorio, laptops y reemplazo de componentes electrónicos.",
+            48: "Especialista en despliegue masivo de imágenes de sistema operativo Windows 10/11, clonación de discos mediante red y carga de paquetería institucional homologada en equipos de cómputo.",
+            49: "Técnico de campo con experiencia en instalación, configuración en red y solución de atascos/fallas mecánicas en impresoras láser, escáneres de alto volumen y equipos multifuncionales.",
+            50: "Especialista en microinformática enfocado en la preparación, configuración de perfiles y entrega formal de equipos de cómputo con firma de resguardos de activos para personal de nuevo ingreso.",
+            51: "Técnico de soporte presencial con experiencia en armado de estaciones de trabajo, configuración de diademas telefónicas, docks de expansión, monitores múltiples y periféricos de captura.",
+            52: "Especialista en diagnóstico de fallas de cableado estructurado, verificación de nodos de red RJ45 en piso, pruebas de continuidad y ponchado de cables en racks de comunicaciones locales.",
+            53: "Técnico de soporte en sitio con dominio en el diagnóstico de memorias RAM, fuentes de poder, discos de estado sólido (SSD) y gestión de garantías técnicas con fabricantes de hardware.",
+            54: "Especialista operativo de microinformática con experiencia en levantamiento de inventarios físicos de activos de TI, etiquetado con código de barras y control de almacén de refacciones informáticas.",
+            55: "Operadora de Conmutador Central con amplia memoria auditiva del directorio institucional, destreza en la canalización expedita de llamadas troncales y excelente modulación y dicción en la atención a usuarios.",
+            56: "Especialista en conmutación telefónica corporativa con experiencia en administración de tráfico multilínea en horas pico, atención de consultas institucionales y canalización prioritaria de enlaces oficiales."
+        };
+
         function obtenerDatosGeneradosCV(r) {
-            const variacion = r.id % 3;
-            let textoPerfil = "";
-            let funciones1 = [];
-            let funciones2 = [];
+            const id = parseInt(r.id);
+            let textoPerfil = PERFILES_EXHAUSTIVOS_56[id] || "Especialista operativo con sólida trayectoria en Centros de Contacto y soporte de tecnologías de la información, enfocado en el cumplimiento riguroso de procedimientos y niveles de servicio bajo mejores prácticas ITIL.";
+            let experiencias = [];
             let skills = [];
 
-            if (r.plantilla === "GERENTE") {
-                textoPerfil = "Profesional senior con más de 8 años de experiencia coordinando operaciones de Mesas de Ayuda y Centros de Contacto en el sector gubernamental y financiero. Especialista en gestión de ANS/SLAs, metodologías ITIL v4 y liderazgo de equipos multidisciplinarios superiores a 50 posiciones.";
-                funciones1 = [
-                    "Dirección operativa y control de la calidad en la atención de incidentes para aplicaciones críticas institucionales.",
-                    "Monitoreo diario del rendimiento operativo, TMO, FCR y nivel de servicio de canales telefónicos e interactivos.",
-                    "Interacción con directivos para presentación de reportes de desempeño y planes de mejora continua."
+            // Empresas de fallback por si no están en la BD
+            const emp1 = r.empresa1 || "Atento Servicios S.A. de C.V. (Site Sevilla, CDMX - 2023 a 2026)";
+            const emp2 = r.empresa2 || "Teleperformance México (Site Amores, CDMX - 2021 a 2023)";
+            const emp3 = r.empresa3 || "Konecta México (Site Tlalnepantla, Edo. Méx. - 2019 a 2021)";
+
+            if (id === 1) {
+                // 4.1 GERENTE DE PROYECTO
+                experiencias = [
+                    {
+                        empresa: emp1,
+                        periodo: "2023 – 2026",
+                        puesto: "Gerente de Operaciones y Entrega de Servicio TI (Service Delivery Manager)",
+                        funciones: [
+                            "Dirección general de la operación de Mesa de Ayuda institucional garantizando cumplimiento de SLAs (99.2%) y disponibilidad 24/7.",
+                            "Liderazgo en comités de gobierno y rendición de cuentas con directivos para presentación de tableros ejecutivos y KPIs estratégicos.",
+                            "Gestión de riesgos operativos, continuidad de negocio (BCP/DRP) y optimización de costos operativos mediante automatización."
+                        ]
+                    },
+                    {
+                        empresa: emp2,
+                        periodo: "2020 – 2023",
+                        puesto: "Subgerente de Mesa de Servicio Corporativa y Calidad",
+                        funciones: [
+                            "Coordinación de 4 supervisores y 45 agentes para atención multicanal de incidentes tecnológicos corporativos.",
+                            "Implementación de marcos de mejora continua basados en ITIL v4, reduciendo el Tiempo Medio de Resolución (MTTR) en 28%."
+                        ]
+                    },
+                    {
+                        empresa: emp3,
+                        periodo: "2017 – 2020",
+                        puesto: "Coordinador de Cuentas Estratégicas y Procesos ITSM",
+                        funciones: [
+                            "Supervisión del cumplimiento de acuerdos de nivel operativo (OLA) y contratos con terceros proveedores de tecnología."
+                        ]
+                    }
                 ];
-                skills = ["ITIL v4 Foundation", "PMP / Scrum", "Gestión de SLAs", "Power BI", "Liderazgo de BPO", "Gestión Presupuestal"];
-            } else if (r.plantilla === "SUPERVISOR") {
-                textoPerfil = `Supervisor de operaciones con sólida trayectoria en monitoreo de métricas operativas y gestión de personal telefónico. Experiencia de ${3 + variacion} años liderando turnos en mesas de servicio y control de accesos bajo buenas prácticas ITIL.`;
-                funciones1 = [
-                    "Supervisión en tiempo real de la adherencia al flujo de atención de llamadas y tickets corporativos.",
-                    "Retroalimentación a agentes operativos para el cumplimiento de guías de negocio y matrices de Calidad.",
-                    "Gestión de escalamientos operativos de primer y segundo nivel hacia áreas resolutorias."
+                skills = ["ITIL v4 Managing Professional", "Gobernanza de TI & COBIT", "Gestión de SLAs Contractuales", "PMP / Scrum Master", "Power BI Ejecutivo", "Liderazgo de BPO & Contact Centers", "Gestión Presupuestal"];
+            } 
+            else if (id >= 2 && id <= 6) {
+                // 4.2 SUPERVISORES (MS, CAL, MTEC, CONM, CALIDAD)
+                const datosSup = {
+                    2: { puesto: "Supervisor de Operaciones – Mesa de Servicio", esp: "Mesa de Servicio Multicanal", s1: "Supervisión Operativa Contact Center", s2: "Métricas ACD / TMO / FCR" },
+                    3: { puesto: "Supervisor de Control de Acceso Lógico y Ciberseguridad", esp: "Gestión de Identidades y Accesos", s1: "Active Directory Avanzado", s2: "Auditoría de Accesos & SOX" },
+                    4: { puesto: "Supervisor de Soporte Técnico en Sitio (Microinformática)", esp: "Soporte Técnico en Sitio y Campo", s1: "Gestión de Mantenimiento de Hardware", s2: "Control de Inventarios & SLAs Sitio" },
+                    5: { puesto: "Supervisor de Operación de Conmutador y Telefonía IP", esp: "Conmutación Telefónica y Troncales SIP", s1: "Telefonía IP & PBX Corporativo", s2: "Enrutamiento de Llamadas Críticas" },
+                    6: { puesto: "Supervisor de Aseguramiento de Calidad y Mejora Continua", esp: "Auditoría de Calidad y Procesos", s1: "Normas COPC & Calibraciones", s2: "Análisis de Calidad Transaccional" }
+                }[id];
+
+                experiencias = [
+                    {
+                        empresa: emp1,
+                        periodo: "2023 – 2026",
+                        puesto: datosSup.puesto,
+                        funciones: [
+                            `Liderazgo operativo en turno para la coordinación de personal en ${datosSup.esp}, asegurando adherencia y calidad de servicio.`,
+                            "Monitoreo en consolas en tiempo real, gestión de escalamientos de alta prioridad y aseguramiento del cumplimiento de ANS.",
+                            "Ejecución de sesiones semanales de coaching y retroalimentación individual para la reducción sistemática de errores operativos."
+                        ]
+                    },
+                    {
+                        empresa: emp2,
+                        periodo: "2021 – 2023",
+                        puesto: `Team Leader / Supervisor Junior – ${datosSup.esp}`,
+                        funciones: [
+                            "Coordinación de brigadas de atención operativa e incidencias masivas en sistemas institucionales.",
+                            "Auditoría del llenado correcto de bitácoras y categorización en plataformas ITSM (ServiceNow / BMC Remedy)."
+                        ]
+                    },
+                    {
+                        empresa: emp3,
+                        periodo: "2019 – 2021",
+                        puesto: "Especialista Senior de Soporte Técnico",
+                        funciones: [
+                            "Atención técnica especializada a usuarios VIP y soporte a procesos críticos de negocio."
+                        ]
+                    }
                 ];
-                skills = ["Supervisión Operativa", "ITIL v4", "Monitoreo ACD/IVR", "Office 365 Advanced", "Gestión de Métrica FCR", "Liderazgo de Equipos"];
-            } else if (r.plantilla === "GESTOR") {
-                textoPerfil = `Analista especialista Nivel IV enfocado en la Gestión de Incidentes Mayores y Causa Raíz (RCA). Amplia experiencia en diagnóstico de fallas complejas en software corporativo, coordinación de comités de crisis y seguimiento con áreas de desarrollo e infraestructura.`;
-                funciones1 = [
-                    "Coordinación e investigación de incidentes críticos de severidad alta que afectan la continuidad operativa.",
-                    "Análisis de tendencia de tickets para la conversión de incidentes recurrentes a problemas.",
-                    "Elaboración de informes de causa raíz (RCA) y planes de acción preventivos."
+                skills = [datosSup.s1, datosSup.s2, "ITIL v4 Foundation", "Monitoreo en Tiempo Real", "ServiceNow / Remedy", "Gestión de Personal", "Microsoft Office 365 Pro"];
+            } 
+            else if (id === 7) {
+                // 4.3 ESPECIALISTA EN IA
+                experiencias = [
+                    {
+                        empresa: emp1,
+                        periodo: "2024 – 2026",
+                        puesto: "Especialista en Inteligencia Artificial y Prompt Engineering",
+                        funciones: [
+                            "Diseño y parametrización de prompts para modelos LLM de primera respuesta integrados al portal y chatbot institucional.",
+                            "Desarrollo de flujos de auto-recuperación de accesos e integración RAG con la base de conocimientos KCS.",
+                            "Monitoreo y calibración de la tasa de acierto (Accuracy >94%) y desvío de volumen de incidentes comunes."
+                        ]
+                    },
+                    {
+                        empresa: emp2,
+                        periodo: "2022 – 2024",
+                        puesto: "Analista de Automatización y Chatbots de Servicio al Cliente",
+                        funciones: [
+                            "Entrenamiento de modelos de lenguaje natural (NLP) para clasificación automática de tickets entrantes.",
+                            "Automatización de scripts en Python / Node.js para validación de datos en sistemas centrales."
+                        ]
+                    },
+                    {
+                        empresa: emp3,
+                        periodo: "2020 – 2022",
+                        puesto: "Desarrollador Junior de Soluciones Digitales",
+                        funciones: [
+                            "Mantenimiento de bases de datos de conocimiento y generación de reportes analíticos de autoservicio."
+                        ]
+                    }
                 ];
-                skills = ["Gestión de Problemas", "Análisis Causa Raíz (RCA)", "ITIL v4", "ITSM / Remedy / ServiceNow", "Directorio Activo", "Diagnóstico de Redes"];
-            } else if (r.plantilla === "IA") {
-                textoPerfil = "Especialista en Inteligencia Artificial Conversacional e Ingeniería de Prompts. Acreditado en fundamentos de IA Generativa y Nube. Experiencia en el entrenamiento de chatbots, bases de conocimiento dinámicas y enrutamiento inteligente de solicitudes.";
-                funciones1 = [
-                    "Diseño y optimización de prompts para asistentes virtuales de primera línea y autoatención.",
-                    "Análisis de intenciones de usuarios y actualización continua de la base de conocimientos con IA.",
-                    "Integración de flujos conversacionales con la plataforma telefónica ACD e ITSM."
+                skills = ["Prompt Engineering Avanzado", "Google Cloud Generative AI", "NLP & Chatbots de Soporte", "Python / Scripts Automatizados", "Integración ITSM / APIs REST", "Bases de Conocimiento RAG", "Análisis de Datos"];
+            } 
+            else if (id >= 8 && id <= 12) {
+                // 4.3 GESTORES DE INCIDENTES MAYORES NIVEL IV
+                const puestosGestor = {
+                    8: "Gestor de Incidentes Mayores Nivel IV (Major Incident Manager)",
+                    9: "Especialista Nivel IV en Análisis de Causa Raíz (RCA)",
+                    10: "Especialista Nivel IV en Gestión de Problemas y Defectología",
+                    11: "Ingeniero Nivel IV de Enlace con Infraestructura y Redes",
+                    12: "Especialista Nivel IV en Continuidad Operativa y BCP/DRP"
+                }[id];
+
+                experiencias = [
+                    {
+                        empresa: emp1,
+                        periodo: "2023 – 2026",
+                        puesto: puestosGestor,
+                        funciones: [
+                            "Activación y conducción técnica de comités de crisis (War Rooms) para incidentes de impacto severo P1.",
+                            "Diagnóstico profundo de trazas, logs y comunicaciones para la identificación ágil de la causa raíz.",
+                            "Elaboración de informes ejecutivos post-mortem y establecimiento de planes de remediación definitiva."
+                        ]
+                    },
+                    {
+                        empresa: emp2,
+                        periodo: "2021 – 2023",
+                        puesto: "Especialista de Soporte Nivel 2/3 y Gestión de Problemas",
+                        funciones: [
+                            "Correlación de incidentes recurrentes para apertura y gestión de registros de Problema en ITSM.",
+                            "Pruebas de estrés y validación de parches de software previo a su liberación en producción."
+                        ]
+                    },
+                    {
+                        empresa: emp3,
+                        periodo: "2019 – 2021",
+                        puesto: "Analista de Mesa de Ayuda Técnica Avanzada",
+                        funciones: [
+                            "Atención de incidencias de segundo nivel en redes LAN/WAN y servidores Windows Server."
+                        ]
+                    }
                 ];
-                skills = ["Google Cloud AI", "Prompt Engineering", "NLP / Chatbots", "Python Basics", "Base de Conocimiento", "Análisis de Datos"];
-            } else if (r.plantilla === "STAFF") {
-                textoPerfil = `Especialista en procesos de soporte operativo con enfoque en aseguramiento de calidad, capacitación continua y analítica de datos. Experiencia comprobada en auditorías de servicio y diseño de planes de entrenamiento para mesas de ayuda de misión crítica.`;
-                funciones1 = [
-                    "Auditoría y evaluación de interacciones telefónicas y digitales bajo matrices de calidad estándar.",
-                    "Elaboración de tableros de control de indicadores operativos y reportes de desempeño gerencial.",
-                    "Actualización de manuales operativos y guías rápidas de resolución."
+                skills = ["Gestión de Incidentes Mayores (MIM)", "Análisis Causa Raíz (RCA)", "ITIL v4 Foundation", "Diagnóstico de Redes y Servidores", "ServiceNow / Remedy ITSM", "Coordinación de War Rooms", "Directorio Activo Avanzado"];
+            } 
+            else if (id >= 13 && id <= 16) {
+                // 4.4 STAFF
+                const perfilesStaff = {
+                    13: { rol: "Aseguramiento de Calidad", p1: "Auditoría de Calidad y Calibraciones COPC", s1: "Normas COPC & Calidad" },
+                    14: { rol: "Capacitación y Formación Continua", p1: "Diseño Instruccional y Curvas de Aprendizaje", s1: "Capacitación de Personal TI" },
+                    15: { rol: "Business Intelligence y Analítica", p1: "Modelado de Datos DAX y Reportería Contractual", s1: "Power BI & Consultas SQL" },
+                    16: { rol: "Gestión Documental y Procesos", p1: "Estandarización de SOPs y Gobernanza KCS", s1: "Documentación ITSM / KCS" }
+                }[id];
+                
+                experiencias = [
+                    {
+                        empresa: emp1,
+                        periodo: "2023 – 2026",
+                        puesto: `Analista Especialista de ${perfilesStaff.rol}`,
+                        funciones: [
+                            `Desarrollo e implementación de controles analíticos para ${perfilesStaff.p1}.`,
+                            "Generación de tableros de control ejecutivos y matrices de cumplimiento normativo para auditorías.",
+                            "Facilitación de mesas de trabajo interdepartamentales para la actualización de procedimientos estándar."
+                        ]
+                    },
+                    {
+                        empresa: emp2,
+                        periodo: "2021 – 2023",
+                        puesto: `Analista de Procesos Operativos – ${perfilesStaff.rol}`,
+                        funciones: [
+                            "Evaluación sistemática de transacciones y diseño de planes de acción correctiva y preventiva.",
+                            "Capacitación continua al personal operativo en guías de atención y mejores prácticas del servicio."
+                        ]
+                    },
+                    {
+                        empresa: emp3,
+                        periodo: "2019 – 2021",
+                        puesto: "Monitor de Operaciones y Mesa de Control",
+                        funciones: [
+                            "Extracción y validación de bases de datos para reportes diarios de productividad y adherencia."
+                        ]
+                    }
                 ];
-                skills = ["Auditoría de Calidad", "Capacitación Operativa", "Power BI / Excel Avanzado", "Documentación ITSM", "Evaluación de KPIs"];
-            } else {
-                // AGENTES (MS, CAL, TEC, CONM)
-                const verbos = ["Atención y registro oportuno de", "Procesamiento y seguimiento de", "Diagnóstico telefónico y atención para"];
-                textoPerfil = `${verbos[variacion]} solicitudes e incidentes de usuarios finales en mesa de ayuda. Dominio de paquetería Microsoft Office 365, sistemas de ticketera corporativos y habilidades de atención al cliente telefónica y vía chat.`;
-                funciones1 = [
-                    "Registro detallado de llamadas e incidentes en el sistema de tickets asignando la categorización correcta.",
-                    "Soporte de primer nivel para restablecimiento de contraseñas, desbloqueos de cuentas y navegación en portales.",
-                    "Cumplimiento estricto de los tiempos de atención y solución definidos en los Niveles de Servicio."
+                skills = [perfilesStaff.s1, "Power BI / DAX / Excel Avanzado", "Auditoría de Procesos", "Modelado de Indicadores", "Metodologías de Mejora Continua", "Gestión Documental", "ServiceNow Reporting"];
+            } 
+            else {
+                // 4.5 AGENTES OPERATIVOS (IDs 17 a 56)
+                let subArea = "Mesa de Servicio Multicanal";
+                let puestoExp1 = "Ejecutivo de Soporte y Operación – Mesa de Servicio";
+                let f1 = "Atención y resolución en primer contacto de solicitudes e incidentes asignados según los procedimientos oficiales.";
+                let f2 = "Registro puntual, tipificación y documentación completa de cada interacción en la plataforma de tickets.";
+                let skillEsp = "Atención Telefónica Multicanal";
+
+                if (id >= 36 && id <= 46) {
+                    subArea = "Control de Acceso Lógico (CAL)";
+                    puestoExp1 = "Analista de Control de Acceso Lógico e Identidades";
+                    f1 = "Administración de identidades, restablecimiento de credenciales y asignación de permisos en Active Directory.";
+                    f2 = "Validación rigurosa de formatos de autorización de usuarios conforme a políticas de seguridad de la información.";
+                    skillEsp = "Gestión de Identidades & Active Directory";
+                } else if (id >= 47 && id <= 54) {
+                    subArea = "Soporte Técnico a Usuarios (Microinformática)";
+                    puestoExp1 = "Técnico de Soporte en Sitio y Microinformática";
+                    f1 = "Mantenimiento preventivo/correctivo, diagnóstico de hardware, configuración de periféricos e impresoras de red.";
+                    f2 = "Despliegue de imágenes de sistema operativo y entrega formal de resguardos de equipo de cómputo.";
+                    skillEsp = "Soporte Microinformática & Hardware";
+                } else if (id >= 55) {
+                    subArea = "Atención en Conmutador Central";
+                    puestoExp1 = "Operador de Conmutador Central y Telefonía Institucional";
+                    f1 = "Enrutamiento preciso de llamadas troncales, atención al directorio institucional y gestión de enlaces telefónicos.";
+                    f2 = "Administración de flujo de llamadas entrantes garantizando tiempos mínimos de espera y etiqueta ejecutiva.";
+                    skillEsp = "Conmutador & Enrutamiento de Llamadas";
+                }
+
+                experiencias = [
+                    {
+                        empresa: emp1,
+                        periodo: "2023 – 2026",
+                        puesto: puestoExp1,
+                        funciones: [
+                            f1,
+                            f2,
+                            "Seguimiento y cierre oportuno de tickets garantizando altos niveles de satisfacción del usuario final (CSAT)."
+                        ]
+                    },
+                    {
+                        empresa: emp2,
+                        periodo: "2021 – 2023",
+                        puesto: `Agente de Operación – ${subArea}`,
+                        funciones: [
+                            "Asistencia remota a usuarios para configuración de software corporativo, VPN y desbloqueo de cuentas.",
+                            "Canalización precisa de solicitudes complejas hacia el segundo nivel de soporte técnico."
+                        ]
+                    },
+                    {
+                        empresa: emp3,
+                        periodo: "2019 – 2021",
+                        puesto: "Operador de Atención a Clientes y Soporte Básico",
+                        funciones: [
+                            "Manejo de herramientas de captura de folios, atención de llamadas y soporte inicial a usuarios internos."
+                        ]
+                    }
                 ];
-                skills = ["Atención Telefónica", "Office 365", "Control de Accesos", "Ticketing ITSM", "Captura Rápida", "Escucha Activa"];
+
+                skills = [skillEsp, "Microsoft Office 365", "Ticketing ServiceNow / Remedy", "Atención Telefónica Profesional", "Desbloqueo de Accesos / AD", "Captura Ágil y Escucha Activa", "Resolución FCR"];
             }
 
-            funciones2 = [
-                "Atención de requerimientos de usuarios internos cumpliendo rigurosamente los procedimientos operativos estándar.",
-                "Colaboración activa en el logro de las metas grupales de satisfacción al cliente (CSAT) y resolución en primer contacto (FCR)."
-            ];
+            return { textoPerfil, experiencias, skills };
+        }
 
-            return { textoPerfil, funciones1, funciones2, skills };
+        // Extracción inteligente de iniciales ejecutivas para el fallback
+        function obtenerIniciales(nombreCompleto) {
+            if (!nombreCompleto) return "--";
+            const limpio = nombreCompleto.replace(/\(#\d+\)/g, '').trim();
+            const partes = limpio.split(/\s+/).filter(Boolean);
+            if (partes.length === 0) return "--";
+            if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase();
+            return (partes[0][0] + partes[1][0]).toUpperCase();
+        }
+
+        // =========================================================================
+        // CONFIGURACIÓN DE LOS 5 ESTILOS VISUALES DIFERENCIADOS POR NIVEL (INFONAVIT)
+        // (Optimizado para Color y Alto Contraste Geométrico en Blanco y Negro)
+        // =========================================================================
+        const ESTILOS_NIVEL_CV = {
+            GERENTE: {
+                nombreNivel: "★ 4.1 DIRECCIÓN DE PROYECTO & GOBERNANZA ★",
+                badgeNivelClass: "bg-slate-950 text-amber-300 border-2 border-amber-400 font-black px-2.5 py-0.5 rounded text-[8.5px] uppercase tracking-widest font-mono shadow-xs",
+                fichaClass: "bg-slate-950 text-white border-4 border-double border-amber-400 p-3 rounded-xl mb-3 flex items-center justify-between shadow-md gap-3.5",
+                nombreClass: "text-base md:text-[17px] font-black text-white leading-tight font-brand break-words whitespace-normal",
+                puestoClass: "text-xs font-black text-amber-400 uppercase tracking-wider mt-1",
+                metaBlockHtml: (r) => `
+                    <div><span class="font-bold text-amber-300">RFC/CURP:</span> <span class="font-semibold text-slate-200">${r.rfc}</span></div>
+                    <div><span class="font-bold text-amber-300">Tel:</span> <span class="text-slate-200">${r.telefono}</span> | <span class="font-bold text-amber-300">Correo:</span> <span class="text-slate-200">${r.correo}</span></div>
+                `,
+                fotoBorderClass: "w-[74px] h-[88px] rounded-xl overflow-hidden border-2 border-double border-amber-400 shadow-md bg-slate-900 flex items-center justify-center relative",
+                fotoFallbackClass: "w-full h-full flex flex-col items-center justify-center bg-slate-900 text-amber-300 p-1 text-center select-none border border-amber-400/40",
+                academicaClass: "text-right border-l-2 border-double border-amber-400 pl-3 text-[10px] min-w-[160px] max-w-[180px] shrink-0 text-slate-300",
+                academicaTitleColor: "text-amber-400 font-black uppercase mb-0.5 tracking-wider",
+                estudiosColor: "font-black text-white text-[11px] leading-tight break-words",
+                cedulaColor: "text-amber-200 mt-0.5 font-semibold",
+                itilBadgeClass: "mt-1.5 inline-block bg-amber-400/20 text-amber-300 font-black px-2 py-0.5 rounded border border-amber-400 text-[9.5px]",
+                secTitleClass: "text-xs font-black uppercase tracking-wider border-b-2 border-double border-slate-950 pb-1 mb-1.5 text-slate-950 flex items-center gap-1.5 font-brand",
+                secIconColor: "text-amber-600",
+                timeline1Class: "border-l-4 border-slate-950 pl-3",
+                timeline2Class: "border-l-2 border-slate-400 pl-3",
+                skillChipClass: "bg-slate-900 text-amber-300 font-black px-2 py-0.5 rounded border border-amber-400 shadow-2xs"
+            },
+            SUPERVISOR: {
+                nombreNivel: "❖ 4.2 SUPERVISIÓN OPERATIVA & GESTIÓN ITIL",
+                badgeNivelClass: "bg-[#3284C6] text-white font-black px-2.5 py-0.5 rounded text-[8.5px] uppercase tracking-wider font-mono shadow-xs",
+                fichaClass: "bg-blue-50/80 border-y-2 border-r-2 border-l-8 border-l-[#3284C6] border-slate-300 p-3 rounded-r-xl mb-3 flex items-center justify-between shadow-xs gap-3.5",
+                nombreClass: "text-base md:text-[17px] font-black text-slate-900 leading-tight font-brand break-words whitespace-normal",
+                puestoClass: "text-xs font-bold text-[#3284C6] uppercase tracking-wide mt-1",
+                metaBlockHtml: (r) => `
+                    <div><span class="font-bold text-slate-800">RFC/CURP:</span> <span class="font-semibold text-slate-900">${r.rfc}</span></div>
+                    <div><span class="font-bold text-slate-800">Tel:</span> <span class="text-slate-700">${r.telefono}</span> | <span class="font-bold text-slate-800">Correo:</span> <span class="text-slate-700">${r.correo}</span></div>
+                `,
+                fotoBorderClass: "w-[74px] h-[88px] rounded-xl overflow-hidden border-2 border-[#3284C6] shadow-sm bg-slate-100 flex items-center justify-center relative",
+                fotoFallbackClass: "w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#3284C6] to-slate-900 text-white p-1 text-center select-none",
+                academicaClass: "text-right border-l-2 border-[#3284C6] pl-3 text-[10px] min-w-[160px] max-w-[180px] shrink-0 text-slate-700",
+                academicaTitleColor: "text-[#3284C6] font-bold uppercase mb-0.5",
+                estudiosColor: "font-bold text-slate-900 text-[11px] leading-tight break-words",
+                cedulaColor: "text-slate-600 mt-0.5",
+                itilBadgeClass: "mt-1.5 inline-block bg-blue-100 text-[#3284C6] font-black px-2 py-0.5 rounded border border-[#3284C6] text-[9.5px]",
+                secTitleClass: "text-xs font-bold uppercase tracking-wider border-b-2 border-[#3284C6] pb-1 mb-1.5 text-[#3284C6] flex items-center gap-1.5 font-brand",
+                secIconColor: "text-[#3284C6]",
+                timeline1Class: "border-l-4 border-[#3284C6] pl-3",
+                timeline2Class: "border-l-2 border-slate-300 pl-3",
+                skillChipClass: "bg-blue-50 text-blue-950 font-bold px-2 py-0.5 rounded border border-blue-300"
+            },
+            NIVEL_IV_IA: {
+                nombreNivel: "⚡ 4.3 NIVEL IV - GESTIÓN DE CRISIS & IA",
+                badgeNivelClass: "bg-[#EB5B27] text-white font-black px-2.5 py-0.5 rounded text-[8.5px] uppercase tracking-wider font-mono shadow-xs",
+                fichaClass: "bg-orange-50/60 border-2 border-dashed border-[#EB5B27] p-3 rounded-xl mb-3 flex items-center justify-between shadow-xs gap-3.5",
+                nombreClass: "text-base md:text-[17px] font-black text-slate-900 leading-tight font-brand break-words whitespace-normal",
+                puestoClass: "text-xs font-bold text-[#EB5B27] uppercase tracking-wide mt-1",
+                metaBlockHtml: (r) => `
+                    <div><span class="font-bold text-slate-800">RFC/CURP:</span> <span class="font-semibold text-slate-900">${r.rfc}</span></div>
+                    <div><span class="font-bold text-slate-800">Tel:</span> <span class="text-slate-700">${r.telefono}</span> | <span class="font-bold text-slate-800">Correo:</span> <span class="text-slate-700">${r.correo}</span></div>
+                `,
+                fotoBorderClass: "w-[74px] h-[88px] rounded-xl overflow-hidden border-2 border-dashed border-[#EB5B27] shadow-sm bg-slate-100 flex items-center justify-center relative",
+                fotoFallbackClass: "w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#EB5B27] to-slate-900 text-white p-1 text-center select-none",
+                academicaClass: "text-right border-l-2 border-dashed border-[#EB5B27] pl-3 text-[10px] min-w-[160px] max-w-[180px] shrink-0 text-slate-700",
+                academicaTitleColor: "text-[#EB5B27] font-bold uppercase mb-0.5",
+                estudiosColor: "font-bold text-slate-900 text-[11px] leading-tight break-words",
+                cedulaColor: "text-slate-600 mt-0.5",
+                itilBadgeClass: "mt-1.5 inline-block bg-orange-100 text-[#EB5B27] font-black px-2 py-0.5 rounded border border-[#EB5B27] text-[9.5px]",
+                secTitleClass: "text-xs font-bold uppercase tracking-wider border-b-2 border-dashed border-[#EB5B27] pb-1 mb-1.5 text-[#EB5B27] flex items-center gap-1.5 font-brand",
+                secIconColor: "text-[#EB5B27]",
+                timeline1Class: "border-l-4 border-dashed border-[#EB5B27] pl-3",
+                timeline2Class: "border-l-2 border-slate-300 pl-3",
+                skillChipClass: "bg-orange-50 text-orange-950 font-bold px-2 py-0.5 rounded border border-orange-300"
+            },
+            STAFF: {
+                nombreNivel: "■ 4.4 STAFF DE SOPORTE & ANALÍTICA ■",
+                badgeNivelClass: "bg-slate-800 text-white font-black px-2.5 py-0.5 rounded text-[8.5px] uppercase tracking-wider font-mono shadow-xs",
+                fichaClass: "bg-slate-100 border-2 border-slate-600 p-3 rounded-lg mb-3 flex items-center justify-between shadow-xs gap-3.5",
+                nombreClass: "text-base md:text-[17px] font-black text-slate-900 leading-tight font-brand break-words whitespace-normal",
+                puestoClass: "text-xs font-bold text-slate-800 uppercase tracking-wide mt-1",
+                metaBlockHtml: (r) => `
+                    <div><span class="font-bold text-slate-800">RFC/CURP:</span> <span class="font-semibold text-slate-900">${r.rfc}</span></div>
+                    <div><span class="font-bold text-slate-800">Tel:</span> <span class="text-slate-700">${r.telefono}</span> | <span class="font-bold text-slate-800">Correo:</span> <span class="text-slate-700">${r.correo}</span></div>
+                `,
+                fotoBorderClass: "w-[74px] h-[88px] rounded-lg overflow-hidden border-2 border-slate-700 shadow-sm bg-slate-200 flex items-center justify-center relative",
+                fotoFallbackClass: "w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900 text-white p-1 text-center select-none",
+                academicaClass: "text-right border-l-2 border-slate-600 pl-3 text-[10px] min-w-[160px] max-w-[180px] shrink-0 text-slate-700",
+                academicaTitleColor: "text-slate-800 font-bold uppercase mb-0.5",
+                estudiosColor: "font-bold text-slate-900 text-[11px] leading-tight break-words",
+                cedulaColor: "text-slate-600 mt-0.5",
+                itilBadgeClass: "mt-1.5 inline-block bg-slate-200 text-slate-900 font-bold px-2 py-0.5 rounded border border-slate-400 text-[9.5px]",
+                secTitleClass: "text-xs font-bold uppercase tracking-wider border-b-2 border-slate-700 pb-1 mb-1.5 text-slate-900 flex items-center gap-1.5 font-brand",
+                secIconColor: "text-slate-800",
+                timeline1Class: "border-l-4 border-slate-700 pl-3",
+                timeline2Class: "border-l-2 border-slate-300 pl-3",
+                skillChipClass: "bg-white text-slate-900 font-bold px-2 py-0.5 rounded border border-slate-400"
+            },
+            OPERATIVO: {
+                nombreNivel: "4.5 OPERACIÓN EN LÍNEA & ATENCIÓN",
+                badgeNivelClass: "bg-white text-slate-800 border border-slate-400 font-bold px-2.5 py-0.5 rounded-full text-[8.5px] uppercase tracking-wider font-mono",
+                fichaClass: "bg-white border border-slate-300 p-3 rounded-xl mb-3 flex items-center justify-between shadow-2xs gap-3.5",
+                nombreClass: "text-base md:text-[17px] font-black text-slate-900 leading-tight font-brand break-words whitespace-normal",
+                puestoClass: "text-xs font-bold text-[#3284C6] uppercase tracking-wide mt-1",
+                metaBlockHtml: (r) => `
+                    <div><span class="font-bold text-slate-700">RFC/CURP:</span> <span class="font-semibold text-slate-800">${r.rfc}</span></div>
+                    <div><span class="font-bold text-slate-700">Tel:</span> <span class="text-slate-600">${r.telefono}</span> | <span class="font-bold text-slate-700">Correo:</span> <span class="text-slate-600">${r.correo}</span></div>
+                `,
+                fotoBorderClass: "w-[74px] h-[88px] rounded-xl overflow-hidden border border-slate-300 bg-slate-50 flex items-center justify-center relative",
+                fotoFallbackClass: "w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#3284C6] to-[#1e293b] text-white p-1 text-center select-none",
+                academicaClass: "text-right border-l border-slate-200 pl-3 text-[10px] min-w-[160px] max-w-[180px] shrink-0 text-slate-600",
+                academicaTitleColor: "text-slate-500 font-bold uppercase mb-0.5",
+                estudiosColor: "font-bold text-slate-800 text-[11px] leading-tight break-words",
+                cedulaColor: "text-slate-600 mt-0.5",
+                itilBadgeClass: "mt-1.5 inline-block bg-blue-50 text-[#3284C6] font-bold px-2 py-0.5 rounded border border-blue-200 text-[9.5px]",
+                secTitleClass: "text-xs font-bold uppercase tracking-wider border-b border-slate-200 pb-1 mb-1.5 text-[#3284C6] flex items-center gap-1.5 font-brand",
+                secIconColor: "text-[#3284C6]",
+                timeline1Class: "border-l-2 border-[#3284C6] pl-3",
+                timeline2Class: "border-l-2 border-slate-300 pl-3",
+                skillChipClass: "bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded border border-slate-300"
+            }
+        };
+
+        function obtenerClaveEstilo(r) {
+            if (r.id === 1 || (r.numeral && r.numeral.includes("4.1"))) return "GERENTE";
+            if (r.numeral && r.numeral.includes("4.2")) return "SUPERVISOR";
+            if (r.numeral && r.numeral.includes("4.3")) return "NIVEL_IV_IA";
+            if (r.numeral && r.numeral.includes("4.4")) return "STAFF";
+            return "OPERATIVO";
         }
 
         function renderizarCV(r) {
-            const { textoPerfil, funciones1, funciones2, skills } = obtenerDatosGeneradosCV(r);
+            const { textoPerfil, experiencias, skills } = obtenerDatosGeneradosCV(r);
+            const claveEstilo = obtenerClaveEstilo(r);
+            const estilo = ESTILOS_NIVEL_CV[claveEstilo] || ESTILOS_NIVEL_CV.OPERATIVO;
 
             document.getElementById('cvFolderRef').textContent = `Folder: ${r.numeral} / Recurso #${r.id}`;
-            document.getElementById('cvNombre').textContent = r.nombre.toUpperCase();
-            document.getElementById('cvFirmaNombre').textContent = r.nombre.toUpperCase();
-            document.getElementById('cvPuesto').textContent = r.puesto.toUpperCase();
-            document.getElementById('cvRfc').textContent = r.rfc;
-            document.getElementById('cvTelefono').textContent = r.telefono;
-            document.getElementById('cvCorreo').textContent = r.correo;
-            document.getElementById('cvEstudios').textContent = r.estudios;
-            document.getElementById('cvCedula').textContent = r.cedula !== "No requerida" ? `Cédula: ${r.cedula}` : `Comprobante Adjunto`;
+
+            // Aplicación del Tema Dinámico
+            document.getElementById('cvFichaData').className = estilo.fichaClass;
             
+            const badgeNivel = document.getElementById('cvNivelBadge');
+            badgeNivel.textContent = estilo.nombreNivel;
+            badgeNivel.className = estilo.badgeNivelClass;
+
+            const elNombre = document.getElementById('cvNombre');
+            elNombre.textContent = (r.nombre || "NOMBRE DEL CANDIDATO").toUpperCase();
+            elNombre.className = estilo.nombreClass;
+
+            const elPuesto = document.getElementById('cvPuesto');
+            elPuesto.textContent = (r.puesto || "PUESTO OPERATIVO").toUpperCase();
+            elPuesto.className = estilo.puestoClass;
+
+            document.getElementById('cvMetaBlock').innerHTML = estilo.metaBlockHtml(r);
+
+            // Bloque Académico
+            document.getElementById('cvAcademicaBlock').className = estilo.academicaClass;
+            document.getElementById('cvAcademicaTitle').className = estilo.academicaTitleColor;
+            
+            const elEstudios = document.getElementById('cvEstudios');
+            elEstudios.textContent = r.estudios || "Estudios no especificados";
+            elEstudios.className = estilo.estudiosColor;
+
+            const elCedula = document.getElementById('cvCedula');
+            elCedula.textContent = r.cedula !== "No requerida" ? `Cédula: ${r.cedula}` : `Comprobante Adjunto`;
+            elCedula.className = estilo.cedulaColor;
+
             const badgeItil = document.getElementById('cvItilBadge');
             if (r.itil && r.itil !== "N/A" && r.itil !== "No requerida") {
                 badgeItil.style.display = 'inline-block';
                 badgeItil.textContent = `ITIL v4 ID: ${r.itil}`;
+                badgeItil.className = estilo.itilBadgeClass;
             } else {
                 badgeItil.style.display = 'none';
             }
 
+            // Títulos de Secciones
+            document.getElementById('cvSecPerfilTitle').className = estilo.secTitleClass;
+            document.getElementById('cvSecTrayectoriaTitle').className = estilo.secTitleClass;
+            document.getElementById('cvSecSkillsTitle').className = estilo.secTitleClass;
+
+            document.getElementById('cvFirmaNombre').textContent = (r.nombre || "NOMBRE DEL RECURSO").toUpperCase();
+            
+            // Renderizado de Fotografía / Iniciales
+            const iniciales = obtenerIniciales(r.nombre);
+            document.getElementById('cvFotoIniciales').textContent = iniciales;
+            document.getElementById('formFotoIniciales').textContent = iniciales;
+
+            const cvFotoContainer = document.getElementById('cvFotoContainer');
+            cvFotoContainer.className = estilo.fotoBorderClass;
+
+            const cvFotoFallback = document.getElementById('cvFotoFallback');
+            cvFotoFallback.className = estilo.fotoFallbackClass;
+
+            const cvFotoImg = document.getElementById('cvFotoImg');
+            const formFotoImg = document.getElementById('formFotoImg');
+            const formFotoFallback = document.getElementById('formFotoFallback');
+            const btnEliminarFoto = document.getElementById('btnEliminarFoto');
+            const btnEditarEncuadre = document.getElementById('btnEditarEncuadre');
+
+            if (r.foto && r.foto.trim() !== "") {
+                cvFotoImg.src = r.foto;
+                cvFotoImg.classList.remove('hidden');
+                cvFotoFallback.classList.add('hidden');
+
+                formFotoImg.src = r.foto;
+                formFotoImg.classList.remove('hidden');
+                formFotoFallback.classList.add('hidden');
+                btnEliminarFoto.classList.remove('hidden');
+                if (btnEditarEncuadre) btnEditarEncuadre.classList.remove('hidden');
+            } else {
+                cvFotoImg.src = "";
+                cvFotoImg.classList.add('hidden');
+                cvFotoFallback.classList.remove('hidden');
+
+                formFotoImg.src = "";
+                formFotoImg.classList.add('hidden');
+                formFotoFallback.classList.remove('hidden');
+                btnEliminarFoto.classList.add('hidden');
+                if (btnEditarEncuadre) btnEditarEncuadre.classList.add('hidden');
+            }
+
             document.getElementById('cvPerfilTexto').textContent = textoPerfil;
-            document.getElementById('cvEmpresa1').textContent = r.empresa1;
-            document.getElementById('cvEmpresa2').textContent = r.empresa2;
 
-            const ul1 = document.getElementById('cvFunciones1');
-            ul1.innerHTML = '';
-            funciones1.forEach(f => {
-                const li = document.createElement('li');
-                li.textContent = f;
-                ul1.appendChild(li);
+            // Inyección Dinámica de Trayectorias Laborales (2 a 3 Empleos)
+            const expContainer = document.getElementById('cvExperienciasContainer');
+            expContainer.innerHTML = '';
+
+            experiencias.forEach((exp, idx) => {
+                const divExp = document.createElement('div');
+                divExp.className = (idx === 0 ? estilo.timeline1Class : estilo.timeline2Class) + " mb-1";
+                
+                divExp.innerHTML = `
+                    <div class="flex justify-between font-bold text-slate-800 text-[10.5px]">
+                        <span>${exp.empresa}</span>
+                        <span class="text-slate-500 font-normal text-[9.5px]">${exp.periodo}</span>
+                    </div>
+                    <div class="text-slate-600 italic font-semibold mb-0.5 text-[10px]">${exp.puesto}</div>
+                    <ul class="list-disc list-inside text-slate-600 space-y-0.5 text-[9.5px]">
+                        ${exp.funciones.map(f => `<li>${f}</li>`).join('')}
+                    </ul>
+                `;
+                expContainer.appendChild(divExp);
             });
 
-            const ul2 = document.getElementById('cvFunciones2');
-            ul2.innerHTML = '';
-            funciones2.forEach(f => {
-                const li = document.createElement('li');
-                li.textContent = f;
-                ul2.appendChild(li);
-            });
-
+            // Habilidades
             const divSkills = document.getElementById('cvSkills');
             divSkills.innerHTML = '';
             skills.forEach(s => {
                 const span = document.createElement('span');
-                span.className = "bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded border border-slate-300";
+                span.className = estilo.skillChipClass;
                 span.textContent = s;
                 divSkills.appendChild(span);
             });
@@ -742,9 +1389,250 @@
             lucide.createIcons();
         }
 
-        // Llenado de 56 Candidatos de Prueba Realistas en la BD
+        // ==========================================
+        // MÓDULO INTERACTIVO DE ENCUADRE, ZOOM Y PAN
+        // ==========================================
+        let currentCropImage = null;
+        let cropZoom = 1.0;
+        let cropPanX = 0;
+        let cropPanY = 0;
+        let isDraggingCrop = false;
+        let startDragX = 0;
+        let startDragY = 0;
+        let filtroNitidezActivo = false;
+
+        // Clipboard Paste Listener Global (Ctrl + V de screenshots)
+        window.addEventListener('paste', function(e) {
+            const items = (e.clipboardData || window.clipboardData).items;
+            if (!items) return;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const blob = items[i].getAsFile();
+                    if (blob) {
+                        cargarBlobEnEditor(blob);
+                        e.preventDefault();
+                        break;
+                    }
+                }
+            }
+        });
+
+        function cargarArchivoEnEditor(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            cargarBlobEnEditor(file);
+            event.target.value = "";
+        }
+
+        function cargarBlobEnEditor(blob) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    currentCropImage = img;
+                    cropZoom = 1.0;
+                    cropPanX = 0;
+                    cropPanY = 0;
+                    filtroNitidezActivo = false;
+                    document.getElementById('cropZoomSlider').value = "1";
+                    document.getElementById('cropZoomVal').textContent = "1.0x";
+                    document.getElementById('txtFiltroNitidez').textContent = "Optimizar Nitidez";
+                    
+                    abrirCropModal();
+                    dibujarCropCanvas();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(blob);
+        }
+
+        function abrirEncuadreActual() {
+            const r = datosRecursos[recursoSeleccionadoIndex];
+            if (!r.foto || r.foto.trim() === '') {
+                document.getElementById('inpFotoFile').click();
+                return;
+            }
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = function() {
+                currentCropImage = img;
+                cropZoom = 1.0;
+                cropPanX = 0;
+                cropPanY = 0;
+                filtroNitidezActivo = false;
+                document.getElementById('cropZoomSlider').value = "1";
+                document.getElementById('cropZoomVal').textContent = "1.0x";
+                abrirCropModal();
+                dibujarCropCanvas();
+            };
+            img.src = r.foto;
+        }
+
+        function abrirCropModal() {
+            document.getElementById('cropModal').classList.remove('hidden');
+            iniciarEventosDrag();
+            lucide.createIcons();
+        }
+
+        function cerrarCropModal() {
+            document.getElementById('cropModal').classList.add('hidden');
+            currentCropImage = null;
+        }
+
+        function actualizarZoom(val) {
+            cropZoom = parseFloat(val);
+            document.getElementById('cropZoomVal').textContent = cropZoom.toFixed(1) + "x";
+            dibujarCropCanvas();
+        }
+
+        function alternarFiltroNitidez() {
+            filtroNitidezActivo = !filtroNitidezActivo;
+            document.getElementById('txtFiltroNitidez').textContent = filtroNitidezActivo ? "Nitidez Aplicada ✨" : "Optimizar Nitidez";
+            dibujarCropCanvas();
+        }
+
+        function dibujarCropCanvas() {
+            if (!currentCropImage) return;
+            const canvas = document.getElementById('cropCanvas');
+            const ctx = canvas.getContext('2d');
+            const targetW = canvas.width; // 400
+            const targetH = canvas.height; // 480
+
+            ctx.clearRect(0, 0, targetW, targetH);
+            ctx.save();
+
+            // Fondo neutro elegante
+            ctx.fillStyle = "#1e293b";
+            ctx.fillRect(0, 0, targetW, targetH);
+
+            if (filtroNitidezActivo) {
+                ctx.filter = "contrast(110%) brightness(103%) saturate(106%)";
+            } else {
+                ctx.filter = "none";
+            }
+
+            // Escala base para cubrir el lienzo
+            const scaleBase = Math.max(targetW / currentCropImage.width, targetH / currentCropImage.height);
+            const finalScale = scaleBase * cropZoom;
+            const drawW = currentCropImage.width * finalScale;
+            const drawH = currentCropImage.height * finalScale;
+
+            const drawX = (targetW - drawW) / 2 + cropPanX;
+            const drawY = (targetH - drawH) / 2 + cropPanY;
+
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(currentCropImage, drawX, drawY, drawW, drawH);
+
+            ctx.restore();
+        }
+
+        function iniciarEventosDrag() {
+            const container = document.getElementById('cropContainer');
+            
+            container.onmousedown = function(e) {
+                isDraggingCrop = true;
+                startDragX = e.clientX - cropPanX;
+                startDragY = e.clientY - cropPanY;
+            };
+
+            window.onmousemove = function(e) {
+                if (!isDraggingCrop) return;
+                cropPanX = e.clientX - startDragX;
+                cropPanY = e.clientY - startDragY;
+                dibujarCropCanvas();
+            };
+
+            window.onmouseup = function() {
+                isDraggingCrop = false;
+            };
+
+            container.ontouchstart = function(e) {
+                if (e.touches.length === 1) {
+                    isDraggingCrop = true;
+                    startDragX = e.touches[0].clientX - cropPanX;
+                    startDragY = e.touches[0].clientY - cropPanY;
+                }
+            };
+
+            container.ontouchmove = function(e) {
+                if (!isDraggingCrop || e.touches.length !== 1) return;
+                cropPanX = e.touches[0].clientX - startDragX;
+                cropPanY = e.touches[0].clientY - startDragY;
+                dibujarCropCanvas();
+                e.preventDefault();
+            };
+
+            container.ontouchend = function() {
+                isDraggingCrop = false;
+            };
+        }
+
+        function guardarEncuadreFinal() {
+            const canvas = document.getElementById('cropCanvas');
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+
+            const r = datosRecursos[recursoSeleccionadoIndex];
+            r.foto = compressedBase64;
+            renderizarCV(r);
+            cerrarCropModal();
+
+            const spinner = document.getElementById('fotoUploadSpinner');
+            spinner.classList.remove('hidden');
+
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                setSyncStatus("guardando");
+                google.script.run
+                    .withSuccessHandler(function(response) {
+                        spinner.classList.add('hidden');
+                        if (response && response.success) {
+                            r.foto = response.fotoUrl;
+                            setSyncStatus("sincronizado");
+                        } else {
+                            setSyncStatus("sincronizado");
+                        }
+                    })
+                    .withFailureHandler(function(err) {
+                        spinner.classList.add('hidden');
+                        console.error("Error al subir foto a Google Drive:", err.message);
+                        setSyncStatus("error", err.message);
+                    })
+                    .subirFotoRecurso(r.id, compressedBase64, 'image/jpeg');
+            } else {
+                setTimeout(() => {
+                    spinner.classList.add('hidden');
+                    setSyncStatus("sincronizado");
+                }, 300);
+            }
+        }
+
+        // Eliminación de fotografía
+        function confirmarEliminarFoto() {
+            const r = datosRecursos[recursoSeleccionadoIndex];
+            if (!confirm(`¿Deseas eliminar la fotografía del recurso #${r.id} (${r.nombre})?`)) return;
+
+            r.foto = "";
+            renderizarCV(r);
+
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                setSyncStatus("guardando");
+                google.script.run
+                    .withSuccessHandler(function() {
+                        setSyncStatus("sincronizado");
+                    })
+                    .withFailureHandler(function(err) {
+                        console.error("Error al eliminar foto:", err.message);
+                        setSyncStatus("error", err.message);
+                    })
+                    .eliminarFotoRecurso(r.id);
+            } else {
+                setSyncStatus("sincronizado");
+            }
+        }
+
+        // Llenado de 56 Candidatos de Prueba Realistas en la BD (CDMX y Área Metropolitana)
         function poblarDatosDemostrativos() {
-            if (!confirm("Esta acción sobrescribirá los nombres y datos personales de los 56 registros en Google Sheets por datos de prueba. ¿Deseas continuar?")) {
+            if (!confirm("Esta acción sobrescribirá los nombres y trayectorias de los 56 registros en Google Sheets con candidatos de prueba y call centers reconocidos de CDMX. ¿Deseas continuar?")) {
                 return;
             }
 
@@ -754,7 +1642,35 @@
                 "Carlos Alberto Mendoza Ruiz", "María Elena Hernández Gómez", "Jorge Luis Torres Morales", "Ana Patricia Ramírez Silva",
                 "Fernando José Castillo Vega", "Laura Sofía Delgado Reyes", "Ricardo Emmanuel Vargas Ortiz", "Claudia Ivonne Guerrero Peña",
                 "Gabriel Alejandro Navarro Cruz", "Mónica Beatriz Salazar Ramos", "Héctor Eduardo Ríos Luna", "Adriana Isabel Méndez Castro",
-                "Rodrigo Antonio Morales Flores", "Valeria Guadalupe Ortiz Domínguez", "Oscar Mauricio Peña Velázquez", "Paola Estefanía Aguilar Rivas"
+                "Rodrigo Antonio Morales Flores", "Valeria Guadalupe Ortiz Domínguez", "Oscar Mauricio Peña Velázquez", "Paola Estefanía Aguilar Rivas",
+                "Alejandro David Morales Guzmán", "Diana Laura Sánchez Cordero", "Iván Santiago Reyes Fuentes", "Brenda Paola Domínguez Lugo"
+            ];
+
+            const callCentersEmpresa1 = [
+                "Atento Servicios S.A. de C.V. (Site Sevilla, CDMX - 2023 a 2026)",
+                "Teleperformance México (Site Amores / Del Valle, CDMX - 2023 a 2026)",
+                "Foundever México / Sitel (Site Toreo, CDMX - 2023 a 2026)",
+                "Concentrix CVG México (Site Coyoacán, CDMX - 2023 a 2026)",
+                "Alorica Contact Center (Site Cuauhtémoc, CDMX - 2023 a 2026)",
+                "TTEC de México / TeleTech (Site Vallejo, CDMX - 2023 a 2026)"
+            ];
+
+            const callCentersEmpresa2 = [
+                "Konecta México / Grupo Comdata (Site Tlalnepantla, Edo. Méx. - 2021 a 2023)",
+                "Sutherland Global Services (Site Naucalpan, Edo. Méx. - 2021 a 2023)",
+                "Apex America México (Site WTC / Narvarte, CDMX - 2021 a 2023)",
+                "DHL Supply Chain México (Mesa de Ayuda TI, CDMX - 2021 a 2023)",
+                "Telat Group BPO & Solutions (Site Insurgentes Sur, CDMX - 2021 a 2023)",
+                "Softtek Información y Tecnología (Site Santa Fe, CDMX - 2021 a 2023)"
+            ];
+
+            const callCentersEmpresa3 = [
+                "Atento México (Site Añil / Iztacalco, CDMX - 2019 a 2021)",
+                "Teleperformance México (Site Balderas / Centro, CDMX - 2018 a 2021)",
+                "Bconnect / Konecta (Site Sevilla, CDMX - 2019 a 2021)",
+                "Sitel de México (Site Insurgentes, CDMX - 2018 a 2021)",
+                "", // Dejar algunos con 2 empresas para variabilidad natural
+                ""
             ];
 
             // Generar localmente
@@ -764,8 +1680,9 @@
                 r.rfc = `TEL${880101 + idx}HQ1`;
                 r.telefono = `55 ${5500 + idx} ${1000 + idx}`;
                 r.correo = `operaciones.casia${r.id}@telat-group.com`;
-                r.empresa1 = idx % 2 === 0 ? "Atento Servicios S.A. de C.V. (2022 - 2025)" : "Teleperformance México (2021 - 2024)";
-                r.empresa2 = idx % 2 === 0 ? "Sutherland Global Services (2019 - 2022)" : "Foundever / Sitel México (2018 - 2021)";
+                r.empresa1 = callCentersEmpresa1[idx % callCentersEmpresa1.length];
+                r.empresa2 = callCentersEmpresa2[idx % callCentersEmpresa2.length];
+                r.empresa3 = callCentersEmpresa3[idx % callCentersEmpresa3.length];
             });
 
             // Enviar guardado recursivo en el backend para todos
@@ -800,44 +1717,112 @@
             }
         }
 
-        // 4. Lógica de Impresión de Alta Calidad sin Scrollbars
-        function imprimirActual() {
+        // Clonador de CV para Impresión que preserva imágenes y estructura exacta
+        function clonarCvParaImpresion(originalCv) {
+            const clone = originalCv.cloneNode(true);
+            
+            const origImg = originalCv.querySelector('#cvFotoImg');
+            const cloneImg = clone.querySelector('#cvFotoImg');
+            const cloneFallback = clone.querySelector('#cvFotoFallback');
+            const cloneContainer = clone.querySelector('#cvFotoContainer');
+            
+            if (origImg && origImg.src && origImg.src.trim() !== "" && !origImg.classList.contains('hidden') && origImg.style.display !== 'none') {
+                if (cloneImg) {
+                    // Si la imagen ya está visible en pantalla, extraer sus píxeles en memoria mediante canvas
+                    try {
+                        if (origImg.complete && origImg.naturalWidth > 0) {
+                            const c = document.createElement('canvas');
+                            c.width = origImg.naturalWidth;
+                            c.height = origImg.naturalHeight;
+                            const ctx = c.getContext('2d');
+                            ctx.drawImage(origImg, 0, 0);
+                            cloneImg.src = c.toDataURL('image/jpeg', 0.95);
+                        } else {
+                            cloneImg.src = origImg.src;
+                        }
+                    } catch(e) {
+                        cloneImg.src = origImg.src;
+                    }
+                    cloneImg.removeAttribute('alt');
+                    cloneImg.classList.remove('hidden');
+                    cloneImg.setAttribute('style', 'display: block !important; visibility: visible !important; width: 100% !important; height: 100% !important; object-fit: cover !important; z-index: 10 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;');
+                }
+                if (cloneFallback) {
+                    cloneFallback.classList.add('hidden');
+                    cloneFallback.setAttribute('style', 'display: none !important; z-index: 0 !important;');
+                }
+                if (cloneContainer) {
+                    cloneContainer.style.backgroundColor = 'transparent';
+                }
+            } else {
+                if (cloneImg) {
+                    cloneImg.classList.add('hidden');
+                    cloneImg.style.display = 'none';
+                }
+                if (cloneFallback) {
+                    cloneFallback.classList.remove('hidden');
+                    cloneFallback.style.display = 'flex';
+                }
+            }
+            return clone;
+        }
+
+        // 4. Lógica de Impresión de Alta Calidad sin Bloqueo ni Destrucción de Nodos
+        async function imprimirActual() {
             const printArea = document.getElementById('printOutputArea');
             printArea.innerHTML = ''; // Limpiar previo
 
-            // Obtener el HTML renderizado del CV activo
             const originalCv = document.getElementById('cvDocumento');
-            const clone = originalCv.cloneNode(true);
+            const clone = clonarCvParaImpresion(originalCv);
             clone.id = 'cvDocumento_print';
             clone.className = "cv-preview cv-page bg-white p-10 flex flex-col justify-between text-slate-800 text-xs";
             
             printArea.appendChild(clone);
 
-            // Ejecutar la impresión nativa del sistema
-            window.print();
-            printArea.innerHTML = ''; // Limpiar después de imprimir
+            // Asegurar que las imágenes del clon estén 100% decodificadas y pintadas antes de abrir el diálogo de impresión
+            const printImages = Array.from(printArea.querySelectorAll('img:not(.hidden)'));
+            await Promise.all(printImages.map(img => {
+                if (img.complete && img.naturalHeight !== 0) {
+                    return img.decode ? img.decode().catch(() => {}) : Promise.resolve();
+                }
+                return new Promise(resolve => {
+                    img.onload = () => resolve(img.decode ? img.decode().catch(() => {}) : null);
+                    img.onerror = () => resolve(null);
+                    setTimeout(resolve, 400);
+                });
+            }));
+
+            // Espera breve para renderizado antes de disparar el driver de impresión
+            setTimeout(function() {
+                window.print();
+            }, 120);
+
+            // Limpieza diferida protegida con onafterprint y timer para no destruir la imagen durante el renderizado PDF
+            const limpiarPrint = () => {
+                printArea.innerHTML = '';
+                window.onafterprint = null;
+            };
+            window.onafterprint = limpiarPrint;
+            setTimeout(limpiarPrint, 6000);
         }
 
         function imprimirLoteCompleto() {
             mostrarLoader(true, "Preparando el lote de 56 CVs para impresión...");
 
-            setTimeout(function() {
+            setTimeout(async function() {
                 const printArea = document.getElementById('printOutputArea');
                 printArea.innerHTML = ''; // Limpiar previo
 
-                // Guardar la selección actual
                 const indexOriginal = recursoSeleccionadoIndex;
 
                 // Renderizar los 56 perfiles continuos
-                datosRecursos.forEach(r => {
-                    // Renderizar temporalmente en el visor para actualizar los datos
+                for (let i = 0; i < datosRecursos.length; i++) {
+                    const r = datosRecursos[i];
                     renderizarCV(r);
                     
-                    // Clonar el nodo renderizado
                     const originalCv = document.getElementById('cvDocumento');
-                    const clone = originalCv.cloneNode(true);
+                    const clone = clonarCvParaImpresion(originalCv);
                     
-                    // Ajustar IDs para evitar duplicados en el DOM de la impresión
                     clone.removeAttribute('id');
                     clone.className = "cv-page cv-preview bg-white p-10 flex flex-col justify-between text-slate-800 text-xs";
                     
@@ -845,17 +1830,38 @@
                     if (elFirma) elFirma.removeAttribute('id');
                     
                     printArea.appendChild(clone);
-                });
+                }
 
                 // Restaurar el CV original seleccionado por el usuario en el visor
                 cargarFormularioRecurso(indexOriginal);
 
+                // Esperar decodificación completa de todas las fotos
+                const printImages = Array.from(printArea.querySelectorAll('img:not(.hidden)'));
+                await Promise.all(printImages.map(img => {
+                    if (img.complete && img.naturalHeight !== 0) {
+                        return img.decode ? img.decode().catch(() => {}) : Promise.resolve();
+                    }
+                    return new Promise(resolve => {
+                        img.onload = () => resolve(img.decode ? img.decode().catch(() => {}) : null);
+                        img.onerror = () => resolve(null);
+                        setTimeout(resolve, 600);
+                    });
+                }));
+
                 mostrarLoader(false);
                 
-                // Ejecutar impresión
-                window.print();
-                printArea.innerHTML = ''; // Limpiar después de imprimir
-            }, 500);
+                // Ejecutar impresión tras asegurar el renderizado
+                setTimeout(function() {
+                    window.print();
+                }, 200);
+
+                const limpiarLote = () => {
+                    printArea.innerHTML = '';
+                    window.onafterprint = null;
+                };
+                window.onafterprint = limpiarLote;
+                setTimeout(limpiarLote, 8000);
+            }, 300);
         }
 
         // Auxiliares de Interfaz

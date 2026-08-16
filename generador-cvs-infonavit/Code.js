@@ -5,9 +5,9 @@
  * Backend en Google Apps Script
  */
 
-// Encabezados canónicos inmutables de la base de datos de recursos
+// Encabezados canónicos inmutables de la base de datos de recursos (15 columnas estándar)
 const ENCABEZADOS_RECURSOS = [
-  "ID", "Numeral", "Puesto", "Nombre", "RFC", "Telefono", "Correo", "Estudios", "Cedula", "ITIL", "Empresa1", "Empresa2", "ReqText", "Plantilla"
+  "ID", "Numeral", "Puesto", "Nombre", "RFC", "Telefono", "Correo", "Estudios", "Cedula", "ITIL", "Empresa1", "Empresa2", "Empresa3", "ReqText", "Foto_URL"
 ];
 
 // Encabezados de la base de datos de configuración
@@ -72,10 +72,11 @@ function cargarDatosSistema() {
         cedulaReq ? "Lic. en Sistemas Computacionales (Titulado)" : (itilReq ? "Lic. en Administración / Ingeniería (Pasante)" : "Bachillerato Tecnológico"),
         cedulaReq ? `${8120000 + idx}` : "No requerida",
         itilReq ? `GR750${1000 + idx}XX` : "N/A",
-        "Atento Servicios S.A. de C.V. (2022 - 2025)",
-        "Teleperformance México (2020 - 2022)",
+        "Atento Servicios S.A. de C.V. (Site Sevilla, CDMX - 2023 a 2026)",
+        "Teleperformance México (Site Amores, CDMX - 2021 a 2023)",
+        idx % 2 === 0 ? "Konecta México (Site Tlalnepantla, Edo. Méx. - 2019 a 2021)" : "",
         r.reqText,
-        r.plantilla
+        "" // Foto_URL
       ];
     });
     
@@ -94,7 +95,7 @@ function cargarDatosSistema() {
     }
   }
 
-  // 4. Lectura atómica de Recursos de ancho completo
+  // 4. Lectura atómica de Recursos mapeada dinámicamente por nombres de encabezado
   const lastRow = sheetRecursos.getLastRow();
   const lastCol = sheetRecursos.getLastColumn();
   const colAbarcar = Math.max(ENCABEZADOS_RECURSOS.length, lastCol);
@@ -102,32 +103,32 @@ function cargarDatosSistema() {
   const rawRecursos = sheetRecursos.getRange(1, 1, lastRow, colAbarcar).getValues();
   const listaRecursos = [];
   
-  // Mapeo dinámico basado en encabezados
   const headers = rawRecursos[0];
-  const idxMap = {};
-  ENCABEZADOS_RECURSOS.forEach(h => {
-    idxMap[h] = headers.indexOf(h);
-  });
+  const getColVal = (fila, headerName) => {
+    const idx = headers.indexOf(headerName);
+    return (idx !== -1 && fila[idx] !== undefined) ? fila[idx] : "";
+  };
 
   for (let i = 1; i < rawRecursos.length; i++) {
     const fila = rawRecursos[i];
-    const id = parseInt(fila[idxMap["ID"]]);
+    const id = parseInt(getColVal(fila, "ID"));
     if (!isNaN(id)) {
       listaRecursos.push({
         id: id,
-        numeral: fila[idxMap["Numeral"]],
-        puesto: fila[idxMap["Puesto"]],
-        nombre: fila[idxMap["Nombre"]],
-        rfc: fila[idxMap["RFC"]],
-        telefono: fila[idxMap["Telefono"]],
-        correo: fila[idxMap["Correo"]],
-        estudios: fila[idxMap["Estudios"]],
-        cedula: fila[idxMap["Cedula"]],
-        itil: fila[idxMap["ITIL"]],
-        empresa1: fila[idxMap["Empresa1"]],
-        empresa2: fila[idxMap["Empresa2"]],
-        reqText: fila[idxMap["ReqText"]],
-        plantilla: fila[idxMap["Plantilla"]]
+        numeral: String(getColVal(fila, "Numeral")),
+        puesto: String(getColVal(fila, "Puesto")),
+        nombre: String(getColVal(fila, "Nombre")),
+        rfc: String(getColVal(fila, "RFC")),
+        telefono: String(getColVal(fila, "Telefono")),
+        correo: String(getColVal(fila, "Correo")),
+        estudios: String(getColVal(fila, "Estudios")),
+        cedula: String(getColVal(fila, "Cedula")),
+        itil: String(getColVal(fila, "ITIL")),
+        empresa1: String(getColVal(fila, "Empresa1")),
+        empresa2: String(getColVal(fila, "Empresa2")),
+        empresa3: String(getColVal(fila, "Empresa3")),
+        reqText: String(getColVal(fila, "ReqText")),
+        foto: String(getColVal(fila, "Foto_URL"))
       });
     }
   }
@@ -140,7 +141,7 @@ function cargarDatosSistema() {
 
 /**
  * Guarda o actualiza un recurso específico en la hoja 'Recursos' en base a su ID.
- * Se realiza una escritura batch del ancho total de la fila.
+ * Se realiza una escritura batch mapeada por nombre de encabezado.
  */
 function guardarRecursoEnSheet(id, datosRecurso) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -156,39 +157,176 @@ function guardarRecursoEnSheet(id, datosRecurso) {
   let targetRow = -1;
   for (let i = 1; i < idsCol.length; i++) {
     if (parseInt(idsCol[i][0]) === parseInt(id)) {
-      targetRow = i + 1; // Fila basada en índice 1
+      targetRow = i + 1;
       break;
     }
   }
 
-  // Si no se encuentra, agregar al final
   if (targetRow === -1) {
     targetRow = lastRow + 1;
   }
 
-  // Preparar el arreglo de valores respetando los encabezados canónicos
+  const headers = sheet.getRange(1, 1, 1, colAbarcar).getValues()[0];
   const rawRow = new Array(colAbarcar).fill("");
-  rawRow[0] = id;
-  rawRow[1] = datosRecurso.numeral || "";
-  rawRow[2] = datosRecurso.puesto || "";
-  rawRow[3] = datosRecurso.nombre || "";
-  rawRow[4] = datosRecurso.rfc || "";
-  rawRow[5] = datosRecurso.telefono || "";
-  rawRow[6] = datosRecurso.correo || "";
-  rawRow[7] = datosRecurso.estudios || "";
-  rawRow[8] = datosRecurso.cedula || "";
-  rawRow[9] = datosRecurso.itil || "";
-  rawRow[10] = datosRecurso.empresa1 || "";
-  rawRow[11] = datosRecurso.empresa2 || "";
-  rawRow[12] = datosRecurso.reqText || "";
-  rawRow[13] = datosRecurso.plantilla || "";
-
-  // Guardar en la hoja
-  sheet.getRange(targetRow, 1, 1, colAbarcar).setValues([rawRow]);
   
-  // Saneamiento de la hoja
+  const setVal = (headerName, val) => {
+    const idx = headers.indexOf(headerName);
+    if (idx !== -1) {
+      rawRow[idx] = (val !== undefined && val !== null) ? val : "";
+    }
+  };
+
+  setVal("ID", id);
+  setVal("Numeral", datosRecurso.numeral);
+  setVal("Puesto", datosRecurso.puesto);
+  setVal("Nombre", datosRecurso.nombre);
+  setVal("RFC", datosRecurso.rfc);
+  setVal("Telefono", datosRecurso.telefono);
+  setVal("Correo", datosRecurso.correo);
+  setVal("Estudios", datosRecurso.estudios);
+  setVal("Cedula", datosRecurso.cedula);
+  setVal("ITIL", datosRecurso.itil);
+  setVal("Empresa1", datosRecurso.empresa1);
+  setVal("Empresa2", datosRecurso.empresa2);
+  setVal("Empresa3", datosRecurso.empresa3);
+  setVal("ReqText", datosRecurso.reqText);
+  setVal("Foto_URL", datosRecurso.foto);
+
+  sheet.getRange(targetRow, 1, 1, colAbarcar).setValues([rawRow]);
   debloatSpreadsheet(sheet, ENCABEZADOS_RECURSOS.length);
   return true;
+}
+
+/**
+ * Obtiene o crea la carpeta designada para fotos en Google Drive con permisos de lectura.
+ */
+function obtenerOCrearCarpetaFotos() {
+  const nombreCarpeta = "Expedientes_Fotos_CVs_Infonavit";
+  const carpetas = DriveApp.getFoldersByName(nombreCarpeta);
+  if (carpetas.hasNext()) {
+    return carpetas.next();
+  }
+  const nuevaCarpeta = DriveApp.createFolder(nombreCarpeta);
+  try {
+    nuevaCarpeta.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (e) {
+    console.warn("Permiso de carpeta compartido no permitido por política del dominio:", e.message);
+  }
+  return nuevaCarpeta;
+}
+
+/**
+ * Guarda o actualiza la foto de un candidato en Google Drive y actualiza la celda en Google Sheets.
+ */
+function subirFotoRecurso(id, base64Data, mimeType) {
+  try {
+    id = parseInt(id);
+    if (isNaN(id)) throw new Error("ID de recurso no válido.");
+
+    const carpeta = obtenerOCrearCarpetaFotos();
+    const nombreArchivo = `Foto_Recurso_${id}.jpg`;
+    
+    // Limpiar archivo previo si existe en la carpeta
+    const archivosExistentes = carpeta.getFilesByName(nombreArchivo);
+    while (archivosExistentes.hasNext()) {
+      const arch = archivosExistentes.next();
+      arch.setTrashed(true);
+    }
+
+    // Extraer datos base64 puros
+    let cleanBase64 = base64Data;
+    if (cleanBase64.indexOf(',') !== -1) {
+      cleanBase64 = cleanBase64.split(',')[1];
+    }
+    
+    const bytes = Utilities.base64Decode(cleanBase64);
+    const blob = Utilities.newBlob(bytes, mimeType || "image/jpeg", nombreArchivo);
+    const nuevoArchivo = carpeta.createFile(blob);
+    try {
+      nuevoArchivo.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (e) {
+      console.warn("No se pudo establecer permiso público directo:", e.message);
+    }
+    
+    const fileId = nuevoArchivo.getId();
+    const fotoUrl = "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w500";
+
+    // Actualizar directamente en la base de datos de Sheets
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName("Recursos");
+    if (sheet) {
+      const lastRow = sheet.getLastRow();
+      const lastCol = Math.max(ENCABEZADOS_RECURSOS.length, sheet.getLastColumn());
+      const data = sheet.getRange(1, 1, lastRow, lastCol).getValues();
+      const headers = data[0];
+      const idIdx = headers.indexOf("ID");
+      let colFotoIdx = headers.indexOf("Foto_URL");
+
+      if (colFotoIdx === -1) {
+        sheet.getRange(1, 1, 1, ENCABEZADOS_RECURSOS.length).setValues([ENCABEZADOS_RECURSOS]);
+        colFotoIdx = ENCABEZADOS_RECURSOS.indexOf("Foto_URL");
+      }
+
+      for (let i = 1; i < data.length; i++) {
+        if (parseInt(data[i][idIdx]) === id) {
+          sheet.getRange(i + 1, colFotoIdx + 1).setValue(fotoUrl);
+          break;
+        }
+      }
+    }
+
+    return {
+      success: true,
+      id: id,
+      fotoUrl: fotoUrl,
+      fileId: fileId
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err.message
+    };
+  }
+}
+
+/**
+ * Elimina la foto de un candidato de Google Drive y limpia la celda en Sheets.
+ */
+function eliminarFotoRecurso(id) {
+  try {
+    id = parseInt(id);
+    const carpeta = obtenerOCrearCarpetaFotos();
+    const nombreArchivo = `Foto_Recurso_${id}.jpg`;
+    
+    const archivosExistentes = carpeta.getFilesByName(nombreArchivo);
+    while (archivosExistentes.hasNext()) {
+      archivosExistentes.next().setTrashed(true);
+    }
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName("Recursos");
+    if (sheet) {
+      const lastRow = sheet.getLastRow();
+      const lastCol = Math.max(ENCABEZADOS_RECURSOS.length, sheet.getLastColumn());
+      const data = sheet.getRange(1, 1, lastRow, lastCol).getValues();
+      const headers = data[0];
+      const idIdx = headers.indexOf("ID");
+      const colFotoIdx = headers.indexOf("Foto_URL");
+
+      if (idIdx !== -1 && colFotoIdx !== -1) {
+        for (let i = 1; i < data.length; i++) {
+          if (parseInt(data[i][idIdx]) === id) {
+            sheet.getRange(i + 1, colFotoIdx + 1).setValue("");
+            break;
+          }
+        }
+      }
+    }
+
+    return { success: true, id: id };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 }
 
 /**

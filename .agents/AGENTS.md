@@ -93,3 +93,19 @@ Este archivo contiene el contexto persistente, reglas de gobernanza, estándares
 - **Ciclo de Vida de Impresión Asíncrono (`window.onafterprint`):** JAMÁS destruyas el contenedor de impresión (`printArea.innerHTML = ''`) de forma síncrona en la línea inmediata después de `window.print()`. En navegadores Chromium, la rasterización del PDF es asíncrona; destruirlo de inmediato borra las imágenes antes de ser procesadas por el spooler. Usa siempre el listener `window.onafterprint` con temporizador de respaldo diferido (>5000ms).
 - **Candado Vertical Dinámico y Densidad de Página (100vh / Anti-Gap):** Para documentos oficiales de 1 sola página (CVs, acreditaciones, cartas membretadas), fija `.cv-page { height: 100vh; max-height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }` calibrando tipografías (10.5px a 11.5px), interlineados (1.4 a 1.5) y 3 bloques de trayectoria laboral para asegurar que el contenido cubra el 90-95% del espacio físico sin huecos vacíos ni saltos accidentales a una segunda página.
 - **Mapeo Resiliente por Nombre de Encabezado (Anti-Desfase):** En todas las aplicaciones que interactúen con Google Sheets, el backend DEBE mapear columnas dinámicamente buscando el índice por nombre (`headers.indexOf("Foto_URL")`). Queda estrictamente PROHIBIDO asignar índices numéricos fijos (ej. `rawRow[15]`), garantizando que si se agregan, renombran o eliminan columnas intermedias (como `Plantilla`), las columnas críticas jamás se desplacen ni queden mal mapeadas.
+
+---
+
+## 🔄 11. PROTOCOLO DE CONCIENCIA MULTI-ENTORNO (PERSONAL 'moroc' VS. TRABAJO 'SDVP')
+
+- **Dualidad de Entornos:** El usuario alterna su desarrollo entre dos computadoras principales:
+  - **Entorno Personal (Laptop/Casa):** `c:\Users\moroc\Documents\GitHub\`
+  - **Entorno de Trabajo (Oficina/SDVP):** `c:\Users\SDVP\Documents\GitHub\`
+- **Detección Automática y Rutas Dinámicas:**
+  - El asistente debe identificar en qué máquina se encuentra mediante las rutas del workspace o metadatos de usuario (`moroc` vs `SDVP`).
+  - Al generar scripts, paths o notificaciones de Telegram, debe utilizar la ruta absoluta correspondiente a la máquina activa (`c:\Users\moroc\...` o `c:\Users\SDVP\...`).
+- **Comando Proactivo de Sincronización al Cerrar Sesión:**
+  - Siempre que el usuario mencione cambio de computadora, fin de jornada o respaldo, el asistente debe generar de forma proactiva el comando de 1 sola línea adaptado con la ruta de la máquina receptora (ej. si está en `moroc`, generar el comando para `SDVP`; si está en `SDVP`, generar el comando para `moroc`).
+- **Gobernanza de Memoria Portátil:**
+  - Los archivos maestros (`.agents/AGENTS.md`, `MANUAL_ARQUITECTURA_TELAT.md`, `MEGA_PROMPT_TELAT_v10.md`, `Ecosistema-Telat-WFM.code-workspace`) deben viajar siempre respaldados dentro del repositorio `telatapps/` para garantizar portabilidad instantánea en la nube.
+

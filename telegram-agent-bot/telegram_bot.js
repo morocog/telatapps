@@ -120,6 +120,16 @@ bot.on('callback_query', (query) => {
   const action = query.data;
   bot.answerCallbackQuery(query.id, { text: '¡Procesando acción en tu equipo!' });
 
+  // Guardar respuesta de decisión para despertar al Antigravity IDE
+  if (['act_approve', 'act_reject'].includes(action)) {
+    try {
+      const respFile = path.join(__dirname, 'telegram_response.json');
+      fs.writeFileSync(respFile, JSON.stringify({ action, timestamp: Date.now() }));
+    } catch (err) {
+      console.error('Error escribiendo telegram_response.json:', err);
+    }
+  }
+
   if (action === 'act_approve') {
     bot.editMessageText(`✅ *APROBADO DESDE TELEGRAM*\n\nAcción autorizada exitosamente. El trabajo continúa en tu equipo.`, {
       chat_id: chatId,

@@ -156,6 +156,21 @@ function cargarDatosSistema() {
       const aplicaVal = getColVal(fila, "AplicaPropuesta");
       const aplicaBool = aplicaVal === true || String(aplicaVal).toUpperCase() === "TRUE" || (aplicaVal === "" && defCat.aplicaPropuesta);
 
+      const rawItil = String(getColVal(fila, "ITIL") || "");
+      let tipoCert = "";
+      let itilId = "";
+      if (rawItil.includes("|")) {
+        const parts = rawItil.split("|");
+        tipoCert = parts[0].trim();
+        itilId = parts.slice(1).join("|").trim();
+      } else {
+        itilId = rawItil || (defCat.itilReq ? `GR750${1000 + id}XX` : "N/A");
+        if (id === 1) tipoCert = "ITIL 4 Managing Professional (MP)";
+        else if (id === 7) tipoCert = "Certificación Profesional en IA / Machine Learning";
+        else if (defCat.itilReq) tipoCert = "ITIL 4 Foundation";
+        else tipoCert = "No requerida";
+      }
+
       listaRecursos.push({
         id: id,
         numeral: String(getColVal(fila, "Numeral") || defCat.numeral || ""),
@@ -167,7 +182,8 @@ function cargarDatosSistema() {
         correo: String(getColVal(fila, "Correo") || `recurso${id}@telat-group.com`),
         estudios: String(getColVal(fila, "Estudios") || (defCat.cedulaReq ? "Lic. en Sistemas Computacionales (Titulado)" : "Bachillerato Tecnológico")),
         cedula: String(getColVal(fila, "Cedula") || (defCat.cedulaReq ? `${8120000 + id}` : "No requerida")),
-        itil: String(getColVal(fila, "ITIL") || (defCat.itilReq ? `GR750${1000 + id}XX` : "N/A")),
+        itil: itilId,
+        tipoCertificacion: tipoCert,
         empresa1: String(getColVal(fila, "Empresa1")),
         empresa2: String(getColVal(fila, "Empresa2")),
         empresa3: String(getColVal(fila, "Empresa3")),
@@ -411,7 +427,13 @@ function guardarRecursoEnSheet(id, datosRecurso) {
   setVal("Correo", datosRecurso.correo);
   setVal("Estudios", datosRecurso.estudios);
   setVal("Cedula", datosRecurso.cedula);
-  setVal("ITIL", datosRecurso.itil);
+  
+  let valItilParaSheet = datosRecurso.itil || "";
+  if (datosRecurso.tipoCertificacion && datosRecurso.tipoCertificacion !== "No requerida") {
+    valItilParaSheet = `${datosRecurso.tipoCertificacion} | ${datosRecurso.itil || 'N/A'}`;
+  }
+  setVal("ITIL", valItilParaSheet);
+  
   setVal("Empresa1", datosRecurso.empresa1);
   setVal("Empresa2", datosRecurso.empresa2);
   setVal("Empresa3", datosRecurso.empresa3);

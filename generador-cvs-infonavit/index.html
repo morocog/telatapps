@@ -397,13 +397,48 @@
                             <label class="block text-[11px] font-bold text-slate-700 mb-0.5">Grado Máximo de Estudios:</label>
                             <input type="text" id="inpEstudios" oninput="actualizarCampo('estudios', this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#3284C6] focus:outline-none">
                         </div>
-                        <div>
+                        <div class="md:col-span-2">
                             <label class="block text-[11px] font-bold text-slate-700 mb-0.5">Cédula Profesional / Folio:</label>
                             <input type="text" id="inpCedula" oninput="actualizarCampo('cedula', this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#3284C6] focus:outline-none">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">ID Certificación ITIL (v3/v4):</label>
-                            <input type="text" id="inpItil" oninput="actualizarCampo('itil', this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#3284C6] focus:outline-none" placeholder="Ej: GR7501002XX o N/A">
+                            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">Nivel / Tipo de Certificación:</label>
+                            <select id="selTipoCertificacion" onchange="actualizarCampo('tipoCertificacion', this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#3284C6] focus:outline-none cursor-pointer">
+                                <optgroup label="── ITIL 4 (Esquema Principal) ──">
+                                    <option value="ITIL 4 Foundation">ITIL 4 Foundation</option>
+                                    <option value="ITIL 4 Managing Professional (MP)">ITIL 4 Managing Professional (MP)</option>
+                                    <option value="ITIL 4 Specialist: Create, Deliver & Support (CDS)">ITIL 4 Specialist (CDS)</option>
+                                    <option value="ITIL 4 Specialist: Drive Stakeholder Value (DSV)">ITIL 4 Specialist (DSV)</option>
+                                    <option value="ITIL 4 Specialist: High-velocity IT (HVIT)">ITIL 4 Specialist (HVIT)</option>
+                                    <option value="ITIL 4 Strategist: Direct, Plan & Improve (DPI)">ITIL 4 Strategist (DPI)</option>
+                                    <option value="ITIL 4 Strategic Leader (SL)">ITIL 4 Strategic Leader (SL)</option>
+                                    <option value="ITIL 4 Leader: Digital & IT Strategy (DITS)">ITIL 4 Leader (DITS)</option>
+                                    <option value="ITIL 4 Master">ITIL 4 Master</option>
+                                </optgroup>
+                                <optgroup label="── ITIL v3 (Ciclo de Vida) ──">
+                                    <option value="ITIL v3 Foundation">ITIL v3 Foundation</option>
+                                    <option value="ITIL v3 Practitioner">ITIL v3 Practitioner</option>
+                                    <option value="ITIL v3 Intermediate">ITIL v3 Intermediate</option>
+                                    <option value="ITIL v3 Expert">ITIL v3 Expert</option>
+                                    <option value="ITIL v3 Master">ITIL v3 Master</option>
+                                </optgroup>
+                                <optgroup label="── ITIL Versión 5 (2026) ──">
+                                    <option value="ITIL Foundation (Version 5)">ITIL Foundation (Version 5)</option>
+                                    <option value="ITIL Strategic Leader (SL - Version 5)">ITIL Strategic Leader (SL - Version 5)</option>
+                                    <option value="ITIL Practice Manager (PM - Version 5)">ITIL Practice Manager (PM - Version 5)</option>
+                                    <option value="ITIL Managing Professional (MP - Version 5)">ITIL Managing Professional (MP - Version 5)</option>
+                                    <option value="ITIL Master (Version 5)">ITIL Master (Version 5)</option>
+                                    <option value="ITIL Extension: AI Governance">ITIL Extension: AI Governance</option>
+                                </optgroup>
+                                <optgroup label="── Especialidad IA & Operación ──">
+                                    <option value="Certificación Profesional en IA / Machine Learning">Cert. en IA / Machine Learning</option>
+                                    <option value="No requerida">No requerida / N/A</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">Folio / ID de Certificación:</label>
+                            <input type="text" id="inpItil" oninput="actualizarCampo('itil', this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#3284C6] focus:outline-none" placeholder="Ej: GR671274064FH o N/A">
                         </div>
                     </div>
                 </div>
@@ -1234,7 +1269,12 @@
             document.getElementById('inpCorreo').value = r.correo || "";
             document.getElementById('inpEstudios').value = r.estudios || "";
             document.getElementById('inpCedula').value = r.cedula || "";
+            
+            const certDefault = r.tipoCertificacion || (r.id === 7 ? "Certificación Profesional en IA / Machine Learning" : (r.itilReq ? (r.id === 1 ? "ITIL 4 Managing Professional (MP)" : "ITIL 4 Foundation") : "No requerida"));
+            r.tipoCertificacion = certDefault;
+            document.getElementById('selTipoCertificacion').value = certDefault;
             document.getElementById('inpItil').value = r.itil || "";
+            
             document.getElementById('inpEmpresa1').value = r.empresa1 || "";
             document.getElementById('inpEmpresa2').value = r.empresa2 || "";
             document.getElementById('inpEmpresa3').value = r.empresa3 || "";
@@ -1333,14 +1373,51 @@
             20: "Ejecutivo de Mesa de Servicio con enfoque prioritario en la resolución en primer contacto (FCR >88%) y tipificación precisa en herramientas ITSM. Destreza en el diagnóstico telefónico de fallas comunes en sistemas operativos Windows, paquetería de oficina y accesos a portales corporativos."
         };
 
+        function adaptarTextoPerfilConCertificacion(textoOriginal, tipoCert) {
+            if (!textoOriginal) return "";
+            if (!tipoCert || tipoCert === "No requerida") {
+                return textoOriginal
+                    .replace(/(?:Certificado|Acreditado|con acreditación|con certificación)\s+en\s+ITIL\s*(?:v[345]|4)?(?:\s+Managing\s+Professional|\s+Foundation|\s+Intermediate|\s+Practitioner|\s+Expert|\s+Master|\s+Strategic\s+Leader|\s+Practice\s+Manager)?/gi, "Con sólida formación en mejores prácticas operativas y marcos de servicio")
+                    .replace(/lineamientos ITIL\s*(?:v[345]|4)?/gi, "lineamientos y mejores prácticas operativas");
+            }
+
+            if (tipoCert === "Certificación Profesional en IA / Machine Learning") {
+                return textoOriginal
+                    .replace(/Certificado por Google Cloud/gi, "Certificado en Inteligencia Artificial y Machine Learning")
+                    .replace(/(?:Certificado|Acreditado|con acreditación)\s+en\s+ITIL[^\,\.]+/gi, "Certificado en Inteligencia Artificial y Machine Learning");
+            }
+
+            let textoAdaptado = textoOriginal;
+
+            if (/Acreditado\s+en\s+ITIL\s*(?:v[345]|4)?/i.test(textoAdaptado)) {
+                textoAdaptado = textoAdaptado.replace(/Acreditado\s+en\s+ITIL\s*(?:v[345]|4)?/i, `Acreditado en ${tipoCert}`);
+            } else if (/Certificado\s+en\s+ITIL\s*(?:v[345]|4)?(?:\s+Managing\s+Professional)?/i.test(textoAdaptado)) {
+                textoAdaptado = textoAdaptado.replace(/Certificado\s+en\s+ITIL\s*(?:v[345]|4)?(?:\s+Managing\s+Professional)?/i, `Certificado en ${tipoCert}`);
+            } else if (/con\s+acreditación\s+ITIL\s*(?:v[345]|4)?/i.test(textoAdaptado)) {
+                textoAdaptado = textoAdaptado.replace(/con\s+acreditación\s+ITIL\s*(?:v[345]|4)?/i, `con acreditación en ${tipoCert}`);
+            } else if (/con\s+certificación\s+ITIL\s*(?:v[345]|4)?/i.test(textoAdaptado)) {
+                textoAdaptado = textoAdaptado.replace(/con\s+certificación\s+ITIL\s*(?:v[345]|4)?/i, `con certificación en ${tipoCert}`);
+            } else if (/lineamientos\s+ITIL\s*(?:v[345]|4)?/i.test(textoAdaptado)) {
+                textoAdaptado = textoAdaptado.replace(/lineamientos\s+ITIL\s*(?:v[345]|4)?/i, `lineamientos de ${tipoCert}`);
+            } else if (/mejores\s+prácticas\s+ITIL/i.test(textoAdaptado)) {
+                textoAdaptado = textoAdaptado.replace(/mejores\s+prácticas\s+ITIL/i, `mejores prácticas de ${tipoCert}`);
+            }
+
+            return textoAdaptado;
+        }
+
         function obtenerDatosGeneradosCV(r) {
             const id = parseInt(r.id);
-            let textoPerfil = PERFILES_CANONICOS_56[id] || (
+            const certActual = r.tipoCertificacion || (r.id === 7 ? "Certificación Profesional en IA / Machine Learning" : (r.itilReq ? (r.id === 1 ? "ITIL 4 Managing Professional (MP)" : "ITIL 4 Foundation") : "No requerida"));
+            
+            let textoBase = PERFILES_CANONICOS_56[id] || (
                 r.perfilRomano === "II" ? "Analista operativo en Control de Acceso Lógico (CAL) con amplio dominio en la administración de cuentas de usuario, reseteo seguro de credenciales y asignación de permisos en Active Directory conforme a políticas de seguridad de la información." :
                 r.perfilRomano === "V" ? "Especialista en conmutación telefónica corporativa con experiencia en administración de tráfico multilínea en horas pico, atención de consultas institucionales y canalización prioritaria de enlaces oficiales con etiqueta ejecutiva." :
                 r.puesto.includes("Soporte Técnico") ? "Técnico de Soporte en Sitio y Microinformática con experiencia en diagnóstico físico, mantenimiento preventivo/correctivo de computadoras de escritorio, laptops, impresoras y configuración de periféricos institucionales." :
                 "Especialista operativo con sólida trayectoria en Centros de Contacto y soporte de tecnologías de la información, enfocado en el cumplimiento riguroso de procedimientos y niveles de servicio bajo mejores prácticas ITIL."
             );
+
+            let textoPerfil = adaptarTextoPerfilConCertificacion(textoBase, certActual);
 
             let experiencias = [];
             let skills = [];
@@ -1582,6 +1659,13 @@
                 skills = [skillEsp, "Microsoft Office 365", "Ticketing ServiceNow / Remedy", "Atención Telefónica Profesional", "Desbloqueo de Accesos / AD", "Captura Ágil y Escucha Activa", "Resolución FCR"];
             }
 
+            // Adaptar dinámicamente el chip de skill ITIL con la certificación seleccionada
+            if (certActual && certActual !== "No requerida") {
+                skills = skills.map(s => s.includes("ITIL") ? certActual : s);
+            } else {
+                skills = skills.map(s => s.includes("ITIL") ? "Mejores Prácticas ITSM" : s);
+            }
+
             return { textoPerfil, experiencias, skills };
         }
 
@@ -1772,16 +1856,20 @@
             elCedula.className = estilo.cedulaColor;
 
             const badgeItil = document.getElementById('cvItilBadge');
-            if (r.id === 7) {
-                badgeItil.style.display = 'inline-block';
-                badgeItil.textContent = `Cert. IA / Machine Learning`;
-                badgeItil.className = "mt-1 inline-block bg-purple-100 text-purple-800 font-bold px-1.5 py-0.5 rounded border border-purple-300 text-[9px]";
-            } else if (r.itil && r.itil !== "N/A" && r.itil !== "No requerida") {
-                badgeItil.style.display = 'inline-block';
-                badgeItil.textContent = `ITIL v3/v4 ID: ${r.itil}`;
-                badgeItil.className = estilo.itilBadgeClass;
-            } else {
+            const certTipo = r.tipoCertificacion || (r.id === 7 ? "Certificación Profesional en IA / Machine Learning" : (r.itilReq ? (r.id === 1 ? "ITIL 4 Managing Professional (MP)" : "ITIL 4 Foundation") : "No requerida"));
+            const rawFolio = r.itil || "";
+            const cleanFolio = (rawFolio && rawFolio !== "N/A" && rawFolio !== "No requerida") ? rawFolio.replace(/^[^\|]+\|\s*/, '').trim() : "";
+
+            if (certTipo === "No requerida" || (!cleanFolio && certTipo === "No requerida")) {
                 badgeItil.style.display = 'none';
+            } else if (certTipo === "Certificación Profesional en IA / Machine Learning" || r.id === 7) {
+                badgeItil.style.display = 'inline-block';
+                badgeItil.textContent = cleanFolio ? `Cert. IA / ML | ID: ${cleanFolio}` : `Cert. IA / Machine Learning`;
+                badgeItil.className = "mt-1 inline-block bg-purple-100 text-purple-800 font-bold px-1.5 py-0.5 rounded border border-purple-300 text-[9px]";
+            } else {
+                badgeItil.style.display = 'inline-block';
+                badgeItil.textContent = cleanFolio ? `${certTipo} | ID: ${cleanFolio}` : certTipo;
+                badgeItil.className = estilo.itilBadgeClass;
             }
 
             // Títulos de Secciones

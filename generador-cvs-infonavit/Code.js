@@ -153,8 +153,7 @@ function cargarDatosSistema() {
     const id = parseInt(getColVal(fila, "ID"));
     if (!isNaN(id)) {
       const defCat = mapCatalogo[id] || {};
-      const aplicaVal = getColVal(fila, "AplicaPropuesta");
-      const aplicaBool = aplicaVal === true || String(aplicaVal).toUpperCase() === "TRUE" || (aplicaVal === "" && defCat.aplicaPropuesta);
+      const aplicaBool = defCat.aplicaPropuesta !== undefined ? defCat.aplicaPropuesta : (aplicaVal === true || String(aplicaVal).toUpperCase() === "TRUE");
 
       const rawItil = String(getColVal(fila, "ITIL") || "");
       let tipoCert = "";
@@ -266,6 +265,21 @@ function sanearYMigrarBaseDeDatos(sheet, catalogoMaestro) {
       necesitaMigracion = true;
       break;
     }
+  }
+
+  // Contar cuántos tienen AplicaPropuesta = TRUE
+  const idxAplica = headers.indexOf("AplicaPropuesta");
+  let countSobre1 = 0;
+  if (idxAplica !== -1) {
+    for (let i = 1; i < rawData.length; i++) {
+      const val = String(rawData[i][idxAplica] || "").toUpperCase();
+      if (val === "TRUE" || val === "VERDADERO" || val === "SÍ" || val === "SI") {
+        countSobre1++;
+      }
+    }
+  }
+  if (countSobre1 !== 24) {
+    necesitaMigracion = true;
   }
 
   // Si los encabezados están incompletos, forzar alineación

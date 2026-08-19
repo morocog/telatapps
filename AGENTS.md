@@ -128,3 +128,28 @@ Este archivo contiene el contexto persistente, reglas de gobernanza, estándares
   - Un problema puntual que el usuario describe visualmente y no puede reproducirse leyendo el código.
 - **Protocolo antes de invocar el browser_subagent:** Preguntarse explícitamente: *"¿Puedo resolver esto leyendo el código?"*. Si la respuesta es sí, NO invocar el subagente.
 
+---
+
+## 🧠 13. PROTOCOLO DE REFACTORIZACIÓN EN PROFUNDIDAD ("Vamos a ponernos reflexivos" / "MODO TRAZABILIDAD")
+
+Cada vez que el usuario mencione la frase **"Vamos a ponernos reflexivos"** o use el comando **"MODO TRAZABILIDAD"**, debes pausar cualquier respuesta superficial y ejecutar un **Análisis Auditado en 4 Capas** para el proyecto actual, considerando la norma CICE del IMT de México y la usabilidad del equipo de entrenamiento.
+
+Ejecuta el análisis en este orden exacto:
+
+1. **CAPA 1: MARCO C4 (Arquitectura y Fronteras)**
+   - **[Contexto]**: Muestra cómo interactúan el usuario (equipo de entrenamiento), el Dashboard y el IMT/CICE.
+   - **[Componentes]**: Identifica los componentes clave del código/schema (módulo de trazabilidad, UI, motor de reportes).
+
+2. **CAPA 2: AUDITORÍA FMEA (Matriz de Fallas e Integridad CICE)**
+   - Detecta los 3 Modos de Falla más críticos (ej. pérdida de trazabilidad, datos huérfanos, faltas en auditoría CICE).
+   - Diseña soluciones preventivas NO destructivas en la base de datos (migraciones de esquema limpias).
+
+3. **CAPA 3: TRIÁNGULO DE USABILIDAD (Efectividad, Eficiencia, Satisfacción)**
+   - Audita la UI/UX del equipo de entrenamiento.
+   - Reduce clics, elimina campos redundantes y simplifica el registro de evidencias diarias.
+
+4. **CAPA 4: LOS 6 SOMBREROS DE DE BONO (Refactorización y Acción)**
+   - Pasa por los 6 sombreros (Blanco, Rojo, Negro, Amarillo, Verde y Azul).
+   - Entrega el código refactorizado y/o los scripts de base de datos listos para implementar sin romper lo existente.
+
+

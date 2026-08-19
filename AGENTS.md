@@ -135,8 +135,11 @@ Este archivo contiene el contexto persistente, reglas de gobernanza, estándares
 Cada vez que el usuario mencione la frase **"Vamos a ponernos reflexivos"** o use el comando **"MODO TRAZABILIDAD"**, debes pausar cualquier respuesta superficial y ejecutar un **Análisis Auditado en 4 Capas** para el proyecto actual, considerando la norma CICE del IMT de México y la usabilidad del equipo de entrenamiento.
 
 > [!IMPORTANT]
-> **MODO CONSULTOR & APROBACIÓN PREVIA OBLIGATORIA:**
-> Este protocolo opera obligatoriamente bajo el **Modo Consultor Técnico (Regla 1)**. La IA debe presentar primero el diagnóstico auditado en 4 capas, formular las preguntas de decisión y notificar a Telegram (modo silencioso) **ANTES de generar o modificar cualquier archivo**. Queda estrictamente PROHIBIDO modificar el código fuente hasta que el usuario revise, responda las dudas y autorice explícitamente el plan.
+> **MODO CONSULTOR & PROHIBICIÓN DE GENERACIÓN DE PLANS DE IMPLEMENTACIÓN (ANTI-AUTO-PROCEED):**
+> Este protocolo opera obligatoriamente bajo el **Modo Consultor Técnico (Regla 1)**.
+> - Queda **estrictamente PROHIBIDO** crear, modificar o guardar el archivo `implementation_plan.md` o cualquier otro artefacto de planificación formal. Esto evita que el sistema de auto-aprobación del IDE ejecute el plan antes de recibir tus respuestas a las preguntas clave.
+> - Toda propuesta técnica, análisis en 4 capas, 6 sombreros y preguntas aclaratorias **debe ser presentada única y exclusivamente en formato de texto dentro de la respuesta de chat**.
+> - Queda estrictamente PROHIBIDO modificar el código fuente o realizar acciones de desarrollo hasta que el usuario responda las dudas y autorice explícitamente el proceder en el chat.
 
 Ejecuta el análisis en este orden exacto:
 
@@ -155,6 +158,3 @@ Ejecuta el análisis en este orden exacto:
 4. **CAPA 4: LOS 6 SOMBREROS DE DE BONO (Refactorización y Acción)**
    - Pasa por los 6 sombreros (Blanco, Rojo, Negro, Amarillo, Verde y Azul).
    - Entrega la propuesta técnica de código refactorizado y/o los scripts de base de datos para aprobación antes de la implementación.
-
-
-

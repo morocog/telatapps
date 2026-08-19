@@ -134,6 +134,10 @@ Este archivo contiene el contexto persistente, reglas de gobernanza, estándares
 
 Cada vez que el usuario mencione la frase **"Vamos a ponernos reflexivos"** o use el comando **"MODO TRAZABILIDAD"**, debes pausar cualquier respuesta superficial y ejecutar un **Análisis Auditado en 4 Capas** para el proyecto actual, considerando la norma CICE del IMT de México y la usabilidad del equipo de entrenamiento.
 
+> [!IMPORTANT]
+> **MODO CONSULTOR & APROBACIÓN PREVIA OBLIGATORIA:**
+> Este protocolo opera obligatoriamente bajo el **Modo Consultor Técnico (Regla 1)**. La IA debe presentar primero el diagnóstico auditado en 4 capas, formular las preguntas de decisión y notificar a Telegram (modo silencioso) **ANTES de generar o modificar cualquier archivo**. Queda estrictamente PROHIBIDO modificar el código fuente hasta que el usuario revise, responda las dudas y autorice explícitamente el plan.
+
 Ejecuta el análisis en este orden exacto:
 
 1. **CAPA 1: MARCO C4 (Arquitectura y Fronteras)**
@@ -150,6 +154,7 @@ Ejecuta el análisis en este orden exacto:
 
 4. **CAPA 4: LOS 6 SOMBREROS DE DE BONO (Refactorización y Acción)**
    - Pasa por los 6 sombreros (Blanco, Rojo, Negro, Amarillo, Verde y Azul).
-   - Entrega el código refactorizado y/o los scripts de base de datos listos para implementar sin romper lo existente.
+   - Entrega la propuesta técnica de código refactorizado y/o los scripts de base de datos para aprobación antes de la implementación.
+
 
 

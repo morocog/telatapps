@@ -106,8 +106,9 @@ Este archivo contiene el contexto persistente, reglas de gobernanza, estándares
   - Al generar scripts, paths o notificaciones de Telegram, debe utilizar la ruta absoluta correspondiente a la máquina activa (`c:\Users\moroc\...` o `c:\Users\SDVP\...`).
 - **Comando Proactivo de Sincronización al Cerrar Sesión:**
   - Siempre que el usuario mencione cambio de computadora, fin de jornada o respaldo, el asistente debe generar de forma proactiva el comando de 1 sola línea adaptado con la ruta de la máquina receptora (ej. si está en `moroc`, generar el comando para `SDVP`; si está en `SDVP`, generar el comando para `moroc`).
-- **Gobernanza de Memoria Portátil:**
+- **Gobernanza de Memoria Portátil & Auto-Sincronización Cero-Esfuerzo:**
   - Los archivos maestros (`.agents/AGENTS.md`, `MANUAL_ARQUITECTURA_TELAT.md`, `MEGA_PROMPT_TELAT_v10.md`, `Ecosistema-Telat-WFM.code-workspace`) deben viajar siempre respaldados dentro del repositorio `telatapps/` para garantizar portabilidad instantánea en la nube.
+  - **RESPONSABILIDAD TOTAL DE LA IA:** El asistente se encarga AUTOMÁTICAMENTE de propagar `AGENTS.md` maestro a todos los sub-repositorios y hacer `git push` en `telatapps`. El usuario NO debe ejecutar comandos ni preocuparse por la sincronización manual.
 
 ---
 

@@ -109,3 +109,21 @@ Este archivo contiene el contexto persistente, reglas de gobernanza, estándares
 - **Gobernanza de Memoria Portátil:**
   - Los archivos maestros (`.agents/AGENTS.md`, `MANUAL_ARQUITECTURA_TELAT.md`, `MEGA_PROMPT_TELAT_v10.md`, `Ecosistema-Telat-WFM.code-workspace`) deben viajar siempre respaldados dentro del repositorio `telatapps/` para garantizar portabilidad instantánea en la nube.
 
+---
+
+## 🌐 12. POLÍTICA ESTRICTA DE USO DEL BROWSER_SUBAGENT (AHORRO DE TOKENS)
+
+- **Regla de Oro:** El `browser_subagent` es la herramienta MÁS costosa en tokens y SOLO debe invocarse cuando el problema **no puede resolverse desde el código fuente**.
+- **Casos PROHIBIDOS (resolver desde código):**
+  - Verificar que una función existe o usa los campos correctos → usar `grep_search` o `view_file`.
+  - Confirmar que un `clasp push` llegó → el output del comando es suficiente.
+  - Revisar coherencia backend↔frontend (campos JSON, nombres de variables) → comparar `Code.js` vs `JavaScript.html` directamente.
+  - Probar lógica de filtros, renders o cálculos → leer el código y razonar.
+  - Navegar al editor de Apps Script (`script.google.com/u/0/home/...`) → NUNCA, no aporta nada.
+- **Casos PERMITIDOS (únicamente estos):**
+  - Un bug de renderizado CSS/visual que no puede inferirse del código y requiere ver el resultado real.
+  - Un error de autenticación, redirección o permiso de GAS que solo se manifiesta en runtime.
+  - Grabar una demostración en video del flujo completo para el usuario.
+  - Un problema puntual que el usuario describe visualmente y no puede reproducirse leyendo el código.
+- **Protocolo antes de invocar el browser_subagent:** Preguntarse explícitamente: *"¿Puedo resolver esto leyendo el código?"*. Si la respuesta es sí, NO invocar el subagente.
+

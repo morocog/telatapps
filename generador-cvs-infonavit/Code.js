@@ -67,16 +67,20 @@ function cargarDatosSistema() {
       ["RAZON_SOCIAL", "Telat Mexico S.A. de C.V.", "Razón social oficial que aparece en el membrete"],
       ["LICITACION", "Licitación Abierta 033/CA/2026-109474", "Identificador del proceso del Infonavit"],
       ["CORREO_CORPORATIVO_DOMINIO", "@telat-group.com", "Dominio predeterminado de correos"],
-      ["LOGO_URL", "https://telat.mx/assets/img/logo.png", "URL pública del logotipo oficial de Telat"]
+      ["LOGO_URL", "https://telat.mx/assets/img/logo.png", "URL pública del logotipo oficial de Telat"],
+      ["FORZAR_EMPRESA1_PROPIA", "TRUE", "Si es TRUE, sustituye dinámicamente en el CV impreso el primer empleo por la razón social de la empresa con antigüedad variable (3-7 años)."]
     ];
     sheetConfig.getRange(2, 1, configPredeterminada.length, ENCABEZADOS_CONFIG.length).setValues(configPredeterminada);
     debloatSpreadsheet(sheetConfig, ENCABEZADOS_CONFIG.length);
   } else {
-    // Si la pestaña Config ya existe pero no tiene TITULO_MEMBRETE, insertarlo automáticamente
+    // Si la pestaña Config ya existe pero no tiene TITULO_MEMBRETE o FORZAR_EMPRESA1_PROPIA, insertarlos automáticamente
     const configRows = sheetConfig.getDataRange().getValues();
     const existingKeys = configRows.slice(1).map(r => r[0]);
     if (!existingKeys.includes("TITULO_MEMBRETE")) {
       sheetConfig.appendRow(["TITULO_MEMBRETE", "TELAT MEXICO", "Título principal en mayúsculas que aparece junto al logo en el membrete"]);
+    }
+    if (!existingKeys.includes("FORZAR_EMPRESA1_PROPIA")) {
+      sheetConfig.appendRow(["FORZAR_EMPRESA1_PROPIA", "TRUE", "Si es TRUE, sustituye dinámicamente en el CV impreso el primer empleo por la razón social de la empresa con antigüedad variable (3-7 años)."]);
     }
   }
 

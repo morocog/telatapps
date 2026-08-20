@@ -74,9 +74,11 @@ Este archivo contiene el contexto persistente, reglas de gobernanza, estándares
 
 ---
 
-## ☁️ 8. PROTOCOLO OBLIGATORIO DE RESPALDO EN GITHUB
+## ☁️ 8. PROTOCOLO OBLIGATORIO DE CIERRE (1º DESPLIEGUE EN CLASP ➔ 2º RESPALDO EN GITHUB)
 
-- **Consulta Proactiva de Git Push:** Al finalizar cualquier tarea, corrección o nueva funcionalidad, el asistente DEBE preguntar explícitamente al usuario si desea guardar y subir de inmediato los cambios a GitHub (`git add`, `git commit` y `git push`), garantizando que no quede código pendiente ni cambios sin respaldar en la nube.
+Al finalizar cualquier tarea, corrección o nueva funcionalidad, el asistente DEBE seguir este orden exacto de cierre:
+1. **Primero (Despliegue en Clasp - Safe Deploy):** Preguntar explícitamente si desea subir y desplegar el código en Google Apps Script (`clasp push` y `clasp deploy -i <deploymentId>`). Es OBLIGATORIO realizar este despliegue creando una **Nueva Versión** sobre el ID de despliegue de producción existente, garantizando que NUNCA se altere el vínculo de producción ni se creen despliegues duplicados. Esto permite al usuario validar los cambios en caliente.
+2. **Segundo (Respaldo definitivo en GitHub):** Solo después de que el usuario valide la nueva versión desplegada y confirme su conformidad, el asistente preguntará proactivamente si desea respaldar el código definitivo en GitHub (`git add`, `git commit` y `git push`). Queda estrictamente prohibido consultar sobre GitHub antes de realizar el despliegue en Clasp.
 
 ---
 
@@ -158,3 +160,6 @@ Ejecuta el análisis en este orden exacto:
 4. **CAPA 4: LOS 6 SOMBREROS DE DE BONO (Refactorización y Acción)**
    - Pasa por los 6 sombreros (Blanco, Rojo, Negro, Amarillo, Verde y Azul).
    - Entrega la propuesta técnica de código refactorizado y/o los scripts de base de datos para aprobación antes de la implementación.
+
+
+

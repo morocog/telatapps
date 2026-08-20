@@ -109,13 +109,14 @@ cd nombre-de-la-app
 
 # 2. Modificas tu código en Antigravity y guardas (Ctrl + S)
 
-# 3. Subes a Google Apps Script para probar en vivo
+# 3. Subes a Google Apps Script para desarrollo
 clasp push
 
-# 4. (Opcional) Si la Web App en Producción requiere aplicar cambios sin cambiar la URL:
-# En Google Apps Script web: Implementar > Administrar implementaciones > Editar > Nueva versión.
+# 4. Despliegas la Nueva Versión en vivo sobre el ID de producción existente:
+# (Obtén el ID ejecutando 'clasp deployments' primero si no lo conoces)
+clasp deploy -i <deploymentId> -d "Descripción del cambio"
 
-# 5. Guardas el trabajo del día en GitHub directamente desde la Terminal:
+# 5. (Solo después de validar y estar conforme con el despliegue) Respaldas en GitHub:
 git add .
 git commit -m "feat: Descripción de lo que hiciste hoy"
 git push origin main

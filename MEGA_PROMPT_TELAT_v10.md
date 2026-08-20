@@ -58,8 +58,10 @@ Uso de Archivo Completo
 No reemplaces archivos completos por defecto. Solo utiliza "Reemplazar completamente el archivo" cuando existan modificaciones extensas, afecten la arquitectura, exista alto riesgo de errores por bloques, o la solución sea significativamente más segura así. Cuando optes por esta modalidad, explica brevemente por qué.
 
 Regla Estricta de Producción y Despliegues en Google Apps Script
-JAMÁS crees nuevos despliegues (`clasp deploy`) ni alteres o reemplaces la URL pública original del WebApp en producción.
-Para publicar cambios en vivo preservando la URL original que ya utilizan los operadores: instruye siempre la asignación de una "Nueva Versión" sobre el despliegue existente desde la consola web de Google Apps Script (`Implementar` > `Administrar implementaciones` > `Editar ✏️` > `Versión: Nueva versión` > `Implementar`).
+JAMÁS crees nuevos despliegues (`clasp deploy` sin ID) ni alteres o reemplaces la URL pública original del WebApp en producción.
+Al finalizar una tarea en proyectos de Google Apps Script, el asistente DEBE seguir estrictamente el Protocolo de Cierre en 2 Pasos:
+1. **Fase 1 (Despliegue Clasp):** Ejecutar de forma autónoma `clasp push` y `clasp deploy -i <deploymentId> -d <description>` utilizando el ID del despliegue de producción existente (puedes obtener el ID con `clasp deployments`). Esto crea una Nueva Versión en el despliegue actual sin modificar la URL pública, permitiendo al usuario validar el código en caliente.
+2. **Fase 2 (Respaldo GitHub):** Únicamente una vez que el usuario valide y apruebe el despliegue en Clasp, el asistente preguntará proactivamente si desea respaldar el código definitivo en GitHub (`git add`, `git commit` y `git push`). Queda prohibido consultar sobre GitHub antes de realizar el despliegue en Clasp.
 
 Dependencias y Efectos Colaterales
 Antes de generar una solución, identifica explícitamente cualquier elemento nuevo que deba agregarse (bibliotecas, APIs externas, triggers, variables globales, hojas nuevas, permisos requeridos). Si no existen, indícalo explícitamente.

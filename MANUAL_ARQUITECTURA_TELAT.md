@@ -124,6 +124,24 @@ git push origin main
 
 ---
 
+### 🔄 SINCRONIZACIÓN AUTOMATIZADA DE TODO EL WORKSPACE (Cambio de Máquina)
+Para no tener que entrar repositorio por repositorio al cambiar entre tu computadora de trabajo (`SDVP`) y tu computadora personal (`moroc`), utiliza el script maestro de PowerShell [sync_all_repos.ps1](file:///c:/Users/SDVP/Documents/GitHub/telatapps/sync_all_repos.ps1) que se encuentra en la raíz de `telatapps/`:
+
+1. **Al irte de una computadora (Respaldo automático en lote):**
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File $env:USERPROFILE\Documents\GitHub\telatapps\sync_all_repos.ps1 -Action push
+   ```
+   *Esto buscará cambios o commits locales sin enviar en todos tus repositorios de la carpeta `GitHub`, realizará un commit automático `"sync: auto-commit before machine switch"` y hará `git push` automáticamente.*
+
+2. **Al llegar a la otra computadora (Descarga y actualización en lote):**
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File $env:USERPROFILE\Documents\GitHub\telatapps\sync_all_repos.ps1 -Action pull
+   ```
+   *Esto ejecutará `git pull` en secuencia sobre todos tus repositorios para traer las actualizaciones de la nube al instante.*
+
+
+---
+
 ## 📄 FASE 6: BUENAS PRÁCTICAS DE DOCUMENTACIÓN Y BASES DE DATOS
 
 Para mantener tu infraestructura nivel enterprise:

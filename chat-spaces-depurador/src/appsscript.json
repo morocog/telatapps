@@ -1,0 +1,28 @@
+{
+  "timeZone": "America/Mexico_City",
+  "dependencies": {
+    "enabledAdvancedServices": [
+      {
+        "userSymbol": "AdminDirectory",
+        "serviceId": "admin",
+        "version": "directory_v1"
+      },
+      {
+        "userSymbol": "Chat",
+        "serviceId": "chat",
+        "version": "v1"
+      }
+    ]
+  },
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/script.container.ui",
+    "https://www.googleapis.com/auth/admin.directory.user.readonly",
+    "https://www.googleapis.com/auth/chat.admin.spaces",
+    "https://www.googleapis.com/auth/chat.admin.delete",
+    "https://www.googleapis.com/auth/chat.admin.memberships.readonly",
+    "https://www.googleapis.com/auth/script.external_request"
+  ]
+}

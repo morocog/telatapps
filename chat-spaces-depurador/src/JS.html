@@ -1,0 +1,566 @@
+<script>
+// Variables de Estado Global en el Cliente
+let allSpaces = [];             // Array de objetos de espacios devueltos por listAllSpaces
+let analyzedSpaces = {};        // Mapa spaceName -> Objeto de análisis detallado
+let isAnalyzing = false;        // Bandera de control de análisis
+let isDeleting = false;         // Bandera de control de eliminación
+let currentAnalysisIndex = 0;   // Índice de progreso del análisis
+let selectedSpaceName = null;   // ID del espacio seleccionado en el panel inferior
+
+const BATCH_SIZE = 10;          // Tamaño de lote seguro para análisis de miembros
+const DELETE_BATCH_SIZE = 5;    // Tamaño de lote seguro para eliminación y bitácora
+
+// Cargar datos al iniciar
+window.onload = function() {
+  cargarMetricasDashboard();
+  cargarListaEspacios();
+};
+
+/**
+ * Carga el conteo histórico de borrados desde la hoja de cálculo.
+ */
+function cargarMetricasDashboard() {
+  google.script.run
+    .withSuccessHandler(function(metrics) {
+      document.getElementById('metric-deleted-spaces').innerText = metrics.totalBorrados.toLocaleString();
+    })
+    .obtenerMetricasDashboard();
+}
+
+/**
+ * Carga la lista inicial de todos los espacios (sin miembros).
+ */
+function cargarListaEspacios() {
+  document.getElementById('loader-text').innerText = "Cargando espacios del dominio...";
+  document.getElementById('loader').style.display = "flex";
+  
+  google.script.run
+    .withSuccessHandler(function(response) {
+      document.getElementById('loader').style.display = "none";
+      
+      if (response.success) {
+        allSpaces = response.spaces;
+        document.getElementById('metric-total-spaces').innerText = allSpaces.length.toLocaleString();
+        
+        // Renderizar la tabla con estado inicial
+        renderizarTabla();
+      } else {
+        alert("Error al cargar espacios: " + response.error);
+      }
+    })
+    .withFailureHandler(function(err) {
+      document.getElementById('loader').style.display = "none";
+      alert("Error crítico de red: " + err.message);
+    })
+    .listAllSpaces();
+}
+
+/**
+ * Renderiza los espacios cargados en la tabla HTML.
+ */
+function renderizarTabla() {
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+  
+  allSpaces.forEach(function(space, index) {
+    const tr = document.createElement('tr');
+    tr.id = 'row-' + index;
+    tr.onclick = function(e) {
+      if (e.target.type !== 'checkbox') {
+        seleccionarFila(space.name, index);
+      }
+    };
+    
+    // Checkbox de selección
+    const tdCheck = document.createElement('td');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'space-checkbox';
+    checkbox.value = space.name;
+    checkbox.id = 'chk-' + index;
+    checkbox.onchange = function() {
+      actualizarBotonEliminar();
+    };
+    tdCheck.appendChild(checkbox);
+    tr.appendChild(tdCheck);
+    
+    // Nombre
+    const tdName = document.createElement('td');
+    tdName.innerText = space.displayName;
+    tdName.style.fontWeight = "500";
+    tr.appendChild(tdName);
+    
+    // Tipo
+    const tdType = document.createElement('td');
+    tdType.innerText = space.spaceType === 'SPACE' ? 'Espacio' : 'Chat Grupal';
+    tr.appendChild(tdType);
+    
+    // Fecha Creación
+    const tdCreated = document.createElement('td');
+    tdCreated.innerText = space.createTime ? formatearFecha(space.createTime) : 'N/A';
+    tr.appendChild(tdCreated);
+    
+    // Miembros (Inicialmente --)
+    const tdMembers = document.createElement('td');
+    tdMembers.id = 'members-' + index;
+    tdMembers.innerText = '--';
+    tr.appendChild(tdMembers);
+    
+    // Estado de Elegibilidad
+    const tdStatus = document.createElement('td');
+    tdStatus.id = 'status-' + index;
+    const badge = document.createElement('span');
+    badge.className = 'badge badge-pending';
+    badge.innerText = 'Pendiente';
+    tdStatus.appendChild(badge);
+    tr.appendChild(tdStatus);
+    
+    tbody.appendChild(tr);
+  });
+  
+  actualizarMetricasLocales();
+}
+
+/**
+ * Formatea un ISO timestamp en formato amigable.
+ */
+function formatearFecha(isoString) {
+  if (!isoString) return 'N/A';
+  const d = new Date(isoString);
+  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+}
+
+/**
+ * Controla el botón de inicio/detención del análisis de miembros.
+ */
+function iniciarAnalisis() {
+  if (isAnalyzing) {
+    // Detener análisis
+    isAnalyzing = false;
+    document.getElementById('btn-analyze-text').innerText = "Reanudar Análisis";
+    document.getElementById('progress-banner').style.display = "none";
+    return;
+  }
+  
+  isAnalyzing = true;
+  document.getElementById('btn-analyze-text').innerText = "Detener Análisis";
+  document.getElementById('progress-banner').style.display = "flex";
+  document.getElementById('btn-select-eligible').disabled = true;
+  document.getElementById('btn-delete').disabled = true;
+  
+  procesarSiguienteLoteAnalisis();
+}
+
+/**
+ * Procesa el análisis de miembros y OUs en lotes recursivos para evitar cuotas y timeouts.
+ */
+function procesarSiguienteLoteAnalisis() {
+  if (!isAnalyzing) return;
+  
+  // Buscar espacios que no estén analizados
+  const lotesPendientes = [];
+  for (let i = 0; i < allSpaces.length; i++) {
+    if (!analyzedSpaces[allSpaces[i].name]) {
+      lotesPendientes.push({
+        index: i,
+        space: allSpaces[i]
+      });
+      if (lotesPendientes.length === BATCH_SIZE) break;
+    }
+  }
+  
+  if (lotesPendientes.length === 0) {
+    // Análisis completado
+    completarAnalisis();
+    return;
+  }
+  
+  // Actualizar banner de progreso
+  const totalAnalizados = Object.keys(analyzedSpaces).length;
+  const porcentaje = Math.round((totalAnalizados / allSpaces.length) * 100);
+  document.getElementById('progress-status-text').innerText = `Analizando miembros... (${totalAnalizados} de ${allSpaces.length})`;
+  document.getElementById('progress-bar-fill').style.width = porcentaje + '%';
+  
+  // Enviar lote al backend
+  const batchSpaces = lotesPendientes.map(item => item.space);
+  
+  // Marcar visualmente como "Analizando..."
+  lotesPendientes.forEach(item => {
+    const badgeContainer = document.getElementById('status-' + item.index);
+    badgeContainer.innerHTML = '<span class="badge badge-analyzing">Analizando...</span>';
+  });
+  
+  google.script.run
+    .withSuccessHandler(function(response) {
+      if (response.success) {
+        response.results.forEach(function(result) {
+          // Guardar resultado
+          analyzedSpaces[result.name] = result;
+          
+          // Buscar índice original
+          const index = allSpaces.findIndex(s => s.name === result.name);
+          if (index > -1) {
+            // Actualizar número de miembros
+            document.getElementById('members-' + index).innerText = result.memberCount;
+            
+            // Actualizar Badge de Estado
+            const badgeContainer = document.getElementById('status-' + index);
+            badgeContainer.innerHTML = '';
+            
+            const badge = document.createElement('span');
+            badge.className = 'badge ' + getBadgeClass(result.eligibility);
+            badge.innerText = result.eligibility;
+            badgeContainer.appendChild(badge);
+            
+            // Si estaba seleccionada la fila en el detalle, refrescar detalle
+            if (selectedSpaceName === result.name) {
+              mostrarDetallesEspacio(result, index);
+            }
+          }
+        });
+        
+        actualizarMetricasLocales();
+        
+        // Continuar con el siguiente lote
+        setTimeout(procesarSiguienteLoteAnalisis, 300); // Pequeña pausa para no saturar la red
+      } else {
+        alert("Error en el lote de análisis: " + response.error);
+        completarAnalisis();
+      }
+    })
+    .withFailureHandler(function(err) {
+      alert("Error crítico en el lote: " + err.message);
+      completarAnalisis();
+    })
+    .analyzeSpacesBatch(batchSpaces);
+}
+
+/**
+ * Finaliza el análisis y restablece el estado de los controles.
+ */
+function completarAnalisis() {
+  isAnalyzing = false;
+  document.getElementById('btn-analyze-text').innerText = "Analizar Espacios";
+  document.getElementById('progress-banner').style.display = "none";
+  document.getElementById('btn-select-eligible').disabled = false;
+  actualizarBotonEliminar();
+}
+
+/**
+ * Devuelve la clase CSS correspondiente a cada estado de elegibilidad.
+ */
+function getBadgeClass(eligibility) {
+  switch (eligibility) {
+    case 'Elegible': return 'badge-eligible';
+    case 'Conservado (Supervisor presente)': return 'badge-conserved';
+    case 'No Elegible': return 'badge-no-eligible';
+    case 'Eliminado': return 'badge-deleted';
+    default: return 'badge-pending';
+  }
+}
+
+/**
+ * Muestra el detalle completo de un espacio en el panel de pie.
+ */
+function seleccionarFila(spaceName, index) {
+  selectedSpaceName = spaceName;
+  
+  // Quitar clase activa previa de la tabla
+  const rows = document.querySelectorAll('#table-body tr');
+  rows.forEach(r => r.style.backgroundColor = '');
+  
+  const selectedRow = document.getElementById('row-' + index);
+  if (selectedRow) {
+    selectedRow.style.backgroundColor = '#EBF8FF';
+  }
+  
+  const detail = analyzedSpaces[spaceName];
+  if (detail) {
+    mostrarDetallesEspacio(detail, index);
+  } else {
+    // Aún no analizado, mostrar info básica
+    const basic = allSpaces[index];
+    document.getElementById('detail-name').innerText = basic.displayName;
+    document.getElementById('detail-id').innerText = basic.name;
+    document.getElementById('detail-created').innerText = basic.createTime ? formatearFecha(basic.createTime) : 'N/A';
+    document.getElementById('detail-activity').innerText = basic.lastActiveTime ? formatearFecha(basic.lastActiveTime) : 'N/A';
+    
+    document.getElementById('detail-managers-list').innerHTML = '<span style="color: var(--text-muted);">El espacio requiere ser analizado primero para ver sus managers.</span>';
+    document.getElementById('detail-eligibility-label').innerText = 'Pendiente';
+    document.getElementById('detail-reason').innerText = 'Falta ejecutar el análisis de miembros de este canal.';
+  }
+}
+
+/**
+ * Renderiza la metadata en los componentes del drawer de detalle.
+ */
+function mostrarDetallesEspacio(detail, index) {
+  document.getElementById('detail-name').innerText = detail.displayName;
+  document.getElementById('detail-id').innerText = detail.name;
+  document.getElementById('detail-created').innerText = detail.createTime ? formatearFecha(detail.createTime) : 'N/A';
+  document.getElementById('detail-activity').innerText = detail.lastActiveTime ? formatearFecha(detail.lastActiveTime) : 'N/A';
+  
+  // Lista de Managers
+  const listContainer = document.getElementById('detail-managers-list');
+  listContainer.innerHTML = '';
+  
+  if (detail.managers.length === 0) {
+    listContainer.innerHTML = '<span style="color: #E53E3E; font-weight: 500;">⚠️ Sin Managers / Creadores activos</span>';
+  } else {
+    detail.managers.forEach(function(manager) {
+      const item = document.createElement('div');
+      item.style.padding = "4px 8px";
+      item.style.backgroundColor = manager.isPCI ? '#C6F6D5' : '#FED7D7';
+      item.style.borderRadius = "4px";
+      item.style.display = "flex";
+      item.style.justifyContent = "space-between";
+      item.style.alignItems = "center";
+      
+      const text = document.createElement('span');
+      text.innerHTML = `<strong>${manager.name}</strong> (${manager.email})<br><small style="color: #4A5568;">OU: ${manager.orgUnit}</small>`;
+      item.appendChild(text);
+      
+      const tag = document.createElement('span');
+      tag.className = 'badge';
+      tag.style.fontSize = "9px";
+      tag.style.padding = "2px 6px";
+      tag.style.backgroundColor = manager.isPCI ? '#22543D' : '#742A2A';
+      tag.style.color = '#FFFFFF';
+      tag.innerText = manager.isPCI ? 'OU PCI' : 'SUPERVISOR';
+      item.appendChild(tag);
+      
+      listContainer.appendChild(item);
+    });
+  }
+  
+  // Diagnóstico
+  document.getElementById('detail-eligibility-label').innerText = detail.eligibility;
+  document.getElementById('detail-reason').innerText = detail.reason;
+}
+
+/**
+ * Filtra los datos de la tabla basándose en el cuadro de búsqueda y el filtro de elegibilidad.
+ */
+function filtrarTabla() {
+  const searchText = document.getElementById('search-box').value.toLowerCase();
+  const filterVal = document.getElementById('filter-eligibility').value;
+  
+  allSpaces.forEach(function(space, index) {
+    const row = document.getElementById('row-' + index);
+    const detail = analyzedSpaces[space.name];
+    
+    let matchesSearch = space.displayName.toLowerCase().indexOf(searchText) > -1;
+    let matchesFilter = false;
+    
+    if (filterVal === 'ALL') {
+      matchesFilter = true;
+    } else if (filterVal === 'PENDING') {
+      matchesFilter = !detail;
+    } else if (detail && detail.eligibility.toUpperCase().indexOf(filterVal) > -1) {
+      matchesFilter = true;
+    }
+    
+    if (matchesSearch && matchesFilter) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+
+/**
+ * Selecciona automáticamente las casillas de verificación de todos los espacios evaluados como ELEGIBLES.
+ */
+function seleccionarTodosElegibles() {
+  allSpaces.forEach(function(space, index) {
+    const detail = analyzedSpaces[space.name];
+    const checkbox = document.getElementById('chk-' + index);
+    const row = document.getElementById('row-' + index);
+    
+    // Solo seleccionar si está visible por los filtros actuales y es Elegible
+    if (detail && detail.eligibility === 'Elegible' && row.style.display !== 'none') {
+      checkbox.checked = true;
+    } else {
+      checkbox.checked = false;
+    }
+  });
+  
+  actualizarBotonEliminar();
+}
+
+/**
+ * Habilita/Deshabilita el botón de eliminar y los checks masivos.
+ */
+function toggleTodosChecks(masterCheckbox) {
+  const checkboxes = document.querySelectorAll('.space-checkbox');
+  checkboxes.forEach(function(cb) {
+    // Solo checkear las filas que estén visibles actualmente en la UI
+    const row = cb.closest('tr');
+    if (row.style.display !== 'none') {
+      cb.checked = masterCheckbox.checked;
+    }
+  });
+  actualizarBotonEliminar();
+}
+
+/**
+ * Cuenta las casillas marcadas y actualiza el estado habilitado del botón de eliminar.
+ */
+function actualizarBotonEliminar() {
+  const checkedCount = document.querySelectorAll('.space-checkbox:checked').length;
+  const btnDelete = document.getElementById('btn-delete');
+  
+  if (checkedCount > 0 && !isDeleting && !isAnalyzing) {
+    btnDelete.disabled = false;
+    btnDelete.innerHTML = `Depurar Seleccionados (${checkedCount})`;
+  } else {
+    btnDelete.disabled = true;
+    btnDelete.innerHTML = "Depurar Seleccionados";
+  }
+}
+
+/**
+ * Actualiza las métricas visuales del panel superior basadas en los datos locales analizados.
+ */
+function actualizarMetricasLocales() {
+  let eligibleCount = 0;
+  let conservedCount = 0;
+  
+  Object.keys(analyzedSpaces).forEach(key => {
+    const status = analyzedSpaces[key].eligibility;
+    if (status === 'Elegible') {
+      eligibleCount++;
+    } else if (status.indexOf('Conservado') > -1) {
+      conservedCount++;
+    }
+  });
+  
+  document.getElementById('metric-eligible-spaces').innerText = eligibleCount.toLocaleString();
+  document.getElementById('metric-conserved-spaces').innerText = conservedCount.toLocaleString();
+}
+
+/**
+ * Solicita confirmación y dispara el proceso recursivo de eliminación masiva por lotes.
+ */
+function confirmarEliminacion() {
+  const checkedBoxes = document.querySelectorAll('.space-checkbox:checked');
+  const checkedCount = checkedBoxes.length;
+  
+  if (checkedCount === 0) return;
+  
+  // Doble confirmación de seguridad para evitar catástrofes
+  const confirmacion = confirm(
+    `🚨 ADVERTENCIA CRÍTICA 🚨\n\n` +
+    `Estás a punto de ELIMINAR permanentemente ${checkedCount} espacios/chats grupales de Google Chat.\n\n` +
+    `• Se registrará la lista de integrantes en la Bitácora de Google Sheets.\n` +
+    `• La eliminación es FÍSICA y no se puede deshacer.\n\n` +
+    `¿Confirmas que deseas proceder con la depuración masiva?`
+  );
+  
+  if (confirmacion) {
+    const spaceNamesToDelete = [];
+    checkedBoxes.forEach(cb => {
+      spaceNamesToDelete.push(cb.value);
+    });
+    
+    iniciarEliminacionMasiva(spaceNamesToDelete);
+  }
+}
+
+/**
+ * Configura la UI e inicia el bucle de borrado en lotes.
+ */
+function iniciarEliminacionMasiva(spaceNames) {
+  isDeleting = true;
+  document.getElementById('btn-delete').disabled = true;
+  document.getElementById('btn-analyze').disabled = true;
+  document.getElementById('btn-select-eligible').disabled = true;
+  document.getElementById('progress-banner').style.display = "flex";
+  
+  ejecutarLoteEliminacion(spaceNames, 0);
+}
+
+/**
+ * Bucle recursivo que envía lotes pequeños al backend para escribir bitácora y borrar espacios.
+ */
+function ejecutarLoteEliminacion(spaceNames, offset) {
+  if (!isDeleting) return;
+  
+  const total = spaceNames.length;
+  
+  if (offset >= total) {
+    // Borrado finalizado
+    finalizarEliminacion();
+    return;
+  }
+  
+  const lote = spaceNames.slice(offset, offset + DELETE_BATCH_SIZE);
+  
+  // Actualizar barra de progreso
+  const porcentaje = Math.round((offset / total) * 100);
+  document.getElementById('progress-status-text').innerText = `Eliminando espacios... (${offset} de ${total})`;
+  document.getElementById('progress-bar-fill').style.width = porcentaje + '%';
+  
+  // Colocar estado visual transitorio
+  lote.forEach(spaceName => {
+    const index = allSpaces.findIndex(s => s.name === spaceName);
+    if (index > -1) {
+      const badgeContainer = document.getElementById('status-' + index);
+      badgeContainer.innerHTML = '<span class="badge badge-analyzing">Eliminando...</span>';
+    }
+  });
+  
+  google.script.run
+    .withSuccessHandler(function(response) {
+      // Marcar en la UI local las filas borradas
+      lote.forEach(spaceName => {
+        const index = allSpaces.findIndex(s => s.name === spaceName);
+        if (index > -1) {
+          // Desmarcar checkbox
+          document.getElementById('chk-' + index).checked = false;
+          document.getElementById('chk-' + index).disabled = true;
+          
+          // Actualizar estado analizado
+          if (analyzedSpaces[spaceName]) {
+            analyzedSpaces[spaceName].eligibility = 'Eliminado';
+            analyzedSpaces[spaceName].reason = 'Espacio borrado exitosamente por la herramienta de depuración.';
+          }
+          
+          // Actualizar Badge a Eliminado
+          const badgeContainer = document.getElementById('status-' + index);
+          badgeContainer.innerHTML = '<span class="badge badge-deleted">Eliminado</span>';
+          
+          // Estilo de fila eliminada (opacidad reducida)
+          document.getElementById('row-' + index).style.opacity = '0.5';
+        }
+      });
+      
+      actualizarMetricasLocales();
+      cargarMetricasDashboard(); // Recargar contador de sheets
+      
+      // Procesar siguiente lote de borrado
+      setTimeout(function() {
+        ejecutarLoteEliminacion(spaceNames, offset + DELETE_BATCH_SIZE);
+      }, 500);
+    })
+    .withFailureHandler(function(err) {
+      alert("Error crítico durante la eliminación del lote: " + err.message);
+      finalizarEliminacion();
+    })
+    .deleteSpacesBatch(lote);
+}
+
+/**
+ * Finaliza el proceso de eliminación masiva.
+ */
+function finalizarEliminacion() {
+  isDeleting = false;
+  document.getElementById('progress-banner').style.display = "none";
+  document.getElementById('btn-analyze').disabled = false;
+  document.getElementById('btn-select-eligible').disabled = false;
+  document.getElementById('check-all').checked = false;
+  
+  actualizarBotonEliminar();
+  alert("🎉 Proceso de depuración masiva completado exitosamente. Todos los detalles se registraron en la bitácora.");
+}
+</script>

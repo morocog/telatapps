@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Expedientes y CVs - Telat Mexico</title>
+    <title>Generador de Currículum Vitae - Telat Mexico</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: DM Sans & Montserrat -->
@@ -227,7 +227,7 @@
                 </div>
                 <div>
                     <h1 id="appTitle" class="text-base md:text-lg font-bold leading-tight font-brand flex items-center gap-2">
-                        Generador de Expedientes y CVs
+                        Generador de Currículum Vitae
                     </h1>
                     <p id="appSub" class="text-xs text-slate-400">Telat Mexico S.A. de C.V. • 24 CVs Sobre 1 / 56 Operativos</p>
                 </div>
@@ -505,10 +505,7 @@
                             </div>
                         </div>
                         <div class="text-right">
-                            <span id="cvLicitacionBadge" class="bg-slate-900 text-white font-black text-[9px] px-2 py-0.5 rounded uppercase tracking-wider font-mono">
-                                Licitación Abierta 033/CA/2026-109474
-                            </span>
-                            <div class="text-[9.5px] font-bold text-[#3284C6] mt-0.5 font-brand">EXPEDIENTE TÉCNICO DE PERSONAL</div>
+                            <div class="text-[9.5px] font-bold text-[#3284C6] mt-0.5 font-brand">CURRÍCULUM VITAE</div>
                         </div>
                     </div>
 
@@ -526,9 +523,9 @@
 
                         <!-- Bloque Datos Principales -->
                         <div class="flex-1 min-w-0 pr-2">
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span id="cvNivelBadge" class="bg-slate-900 text-amber-300 border-2 border-amber-400 font-black px-2 py-0.5 rounded text-[8px] uppercase tracking-wider font-mono">PERFIL VIII • DIRECCIÓN</span>
-                                <span id="cvSobreBadge" class="bg-blue-600 text-white font-bold px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider">SOBRE 1</span>
+                            <div class="flex items-center gap-2 mb-0.5" style="display: none;">
+                                <span id="cvNivelBadge" class="bg-slate-900 text-amber-300 border-2 border-amber-400 font-black px-2 py-0.5 rounded text-[8px] uppercase tracking-wider font-mono" style="display: none;">PERFIL VIII • DIRECCIÓN</span>
+                                <span id="cvSobreBadge" class="bg-blue-600 text-white font-bold px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider" style="display: none;">SOBRE 1</span>
                             </div>
                             <h2 id="cvNombre" class="text-base md:text-[17px] font-black text-white leading-tight font-brand break-words">NOMBRE DEL CANDIDATO</h2>
                             <div id="cvPuesto" class="text-xs font-black text-amber-400 uppercase tracking-wider mt-0.5">GERENTE DE PROYECTO</div>
@@ -580,23 +577,9 @@
                     </div>
                 </div>
 
-                <!-- Pie de Página: Manifestación y Doble Firma -->
-                <div class="border-t border-slate-300 pt-2 mt-auto">
-                    <p class="text-[9px] text-slate-500 text-center italic mb-2.5">
-                        "Manifiesto bajo protesta de decir verdad que los datos asentados en el presente Currículum Vitae son verídicos y que cuento con la disponibilidad inmediata para prestar mis servicios en la licitación abierta 033/CA/2026-109474 para el INFONAVIT."
-                    </p>
-                    <div class="flex justify-around items-end text-center text-[10px]">
-                        <div>
-                            <div class="w-48 border-b border-slate-800 mb-1"></div>
-                            <div id="cvFirmaNombre" class="font-bold text-slate-900 font-brand">NOMBRE DEL RECURSO</div>
-                            <div class="text-slate-500 text-[9px]">Firma Autógrafa del Recurso</div>
-                        </div>
-                        <div>
-                            <div class="w-48 border-b border-slate-800 mb-1"></div>
-                            <div class="font-bold text-slate-900 font-brand">REPRESENTANTE LEGAL</div>
-                            <div id="firmaRazonSocial" class="text-slate-500 text-[9px]">Telat Mexico S.A. de C.V.</div>
-                        </div>
-                    </div>
+                <!-- Pie de Página: Nombre del Recurso Centrado -->
+                <div class="border-t border-slate-300 pt-2 mt-auto text-center">
+                    <div id="cvFirmaNombre" class="font-bold text-slate-900 font-brand text-[10px] tracking-wider uppercase">NOMBRE DEL RECURSO</div>
                 </div>
 
             </div>
@@ -1011,7 +994,7 @@
             const lic = configSistema["LICITACION"] || "Licitación Abierta 033/CA/2026-109474";
             const logo = configSistema["LOGO_URL"] || "https://telat.mx/assets/img/logo.png";
             
-            document.getElementById('appTitle').textContent = "Generador de Expedientes y CVs";
+            document.getElementById('appTitle').textContent = "Generador de Currículum Vitae";
             document.getElementById('appSub').textContent = `${rs} • 24 CVs Sobre 1 / 56 Operativos`;
             
             // Logotipos dinámicos
@@ -1023,8 +1006,16 @@
             const elTit = document.getElementById('membreteTituloPrincipal');
             if (elTit) elTit.textContent = titMembrete.toUpperCase();
             document.getElementById('membreteRazonSocial').textContent = rs.toUpperCase();
-            document.getElementById('firmaRazonSocial').textContent = rs;
-            document.getElementById('cvLicitacionBadge').textContent = lic;
+            
+            const firmaRS = document.getElementById('firmaRazonSocial');
+            if (firmaRS) {
+                firmaRS.textContent = rs;
+            }
+            
+            const badgeLic = document.getElementById('cvLicitacionBadge');
+            if (badgeLic) {
+                badgeLic.textContent = lic;
+            }
         }
 
         function iniciarModoFallbackLocal() {
@@ -1116,7 +1107,7 @@
             // 10. Agentes Mesa de Servicio (IDs 20 al 38)
             for (let i = 20; i <= 38; i++) {
                 catalogo.push({
-                    id: i, numeral: "3.10.1 Operación - Mesa de Servicio", perfilRomano: "I", puesto: `Agente de Mesa de Servicio (Posición #${i - 19})`,
+                    id: i, numeral: "3.10.1 Operación - Mesa de Servicio", perfilRomano: "I", puesto: "Agente de mesa de servicio y mesa de soporte técnico",
                     itilReq: false, cedulaReq: false, aplicaPropuesta: i <= 24, plantilla: "OPERATIVO",
                     reqText: i <= 24 ? "Req. 23 (Bachillerato Técnico)" : "Operación (Bachillerato Técnico)"
                 });
@@ -1125,7 +1116,7 @@
             // 11. Agentes Soporte Técnico (IDs 39 al 43)
             for (let i = 39; i <= 43; i++) {
                 catalogo.push({
-                    id: i, numeral: "3.10.1 Operación - Soporte Técnico", perfilRomano: "I", puesto: `Agente de Soporte Técnico (Posición #${i - 38})`,
+                    id: i, numeral: "3.10.1 Operación - Soporte Técnico", perfilRomano: "I", puesto: "Agente de mesa de servicio y mesa de soporte técnico",
                     itilReq: false, cedulaReq: false, aplicaPropuesta: false, plantilla: "OPERATIVO", reqText: "Operación (Bachillerato Técnico)"
                 });
             }
@@ -1133,7 +1124,7 @@
             // 12. Agentes CAL (IDs 44 al 53)
             for (let i = 44; i <= 53; i++) {
                 catalogo.push({
-                    id: i, numeral: "3.10.2 Control de Acceso Lógico (CAL)", perfilRomano: "II", puesto: `Agente de Control de Acceso Lógico (Posición #${i - 43})`,
+                    id: i, numeral: "3.10.2 Control de Acceso Lógico (CAL)", perfilRomano: "II", puesto: "Agente de Control de Acceso Lógico",
                     itilReq: false, cedulaReq: false, aplicaPropuesta: i <= 46, plantilla: "OPERATIVO",
                     reqText: i <= 46 ? "Req. 24 (Bachillerato Técnico)" : "Operación (Bachillerato Técnico)"
                 });
@@ -1142,7 +1133,7 @@
             // 13. Agentes Conmutador (IDs 54, 55, 56)
             for (let i = 54; i <= 56; i++) {
                 catalogo.push({
-                    id: i, numeral: "3.10.5 Operación - Conmutador Telefónico", perfilRomano: "V", puesto: `Agente Telefónico de Conmutador (Posición #${i - 53})`,
+                    id: i, numeral: "3.10.5 Operación - Conmutador Telefónico", perfilRomano: "V", puesto: "Agente Telefónico de Conmutador",
                     itilReq: false, cedulaReq: false, aplicaPropuesta: i <= 55, plantilla: "OPERATIVO",
                     reqText: i <= 55 ? "Req. 28 (Bachillerato Técnico)" : "Operación (Bachillerato Técnico)"
                 });
@@ -1203,7 +1194,15 @@
                 const opt = document.createElement('option');
                 opt.value = r.id;
                 const prefixPropuesta = r.aplicaPropuesta ? "★ [Sobre 1] " : "• ";
-                opt.textContent = `${prefixPropuesta}#${r.id} (${r.perfilRomano || 'I'}) • ${r.puesto}`;
+                
+                let puestoText = r.puesto || "";
+                if (r.id >= 20 && r.id <= 43) {
+                    puestoText = "Agente de mesa de servicio y mesa de soporte técnico";
+                } else {
+                    puestoText = puestoText.replace(/\s*\(Posición\s*#\d+\)\s*/gi, "").trim();
+                }
+                
+                opt.textContent = `${prefixPropuesta}(${r.perfilRomano || 'I'}) • ${puestoText}`;
                 sel.appendChild(opt);
             });
         }
@@ -1236,7 +1235,13 @@
                 badgePropuesta.className = "text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded";
             }
 
-            document.getElementById('txtNumeral').textContent = `${r.numeral || ''} • ${r.puesto || ''}`;
+            let puestoForm = r.puesto || '';
+            if (r.id >= 20 && r.id <= 43) {
+                puestoForm = "Agente de mesa de servicio y mesa de soporte técnico";
+            } else {
+                puestoForm = puestoForm.replace(/\s*\([Pp]os[^\)]+\)/gi, "").trim();
+            }
+            document.getElementById('txtNumeral').textContent = `${r.numeral || ''} • ${puestoForm}`;
             document.getElementById('badgeRequisitos').textContent = r.reqText || "Requisito Estándar";
 
             const badgeItil = document.getElementById('badgeItilReq');
@@ -1352,26 +1357,26 @@
         // 3. GENERADOR DE DESCRIPCIONES Y TRAYECTORIAS REALISTAS
         // =========================================================================
         const PERFILES_CANONICOS_56 = {
-            1: "Profesional senior con más de 8 años de experiencia en la dirección estratégica y gobernanza operativa de Mesas de Ayuda y Centros de Contacto de misión crítica para el sector público y financiero. Certificado en ITIL v4 Managing Professional y marcos COBIT/PMP, con liderazgo comprobado en la administración de contratos con ANS superiores al 98%, gestión presupuestal, auditorías de calidad y coordinación de plantillas multidisciplinarias mayores a 60 posiciones.",
-            2: "Supervisor de operaciones con más de 4 años de trayectoria dirigiendo turnos en Mesas de Ayuda multicanal de alto volumen. Especialista en optimización de métricas ACD (TMO, FCR, Adherencia) y coaching de personal bajo lineamientos ITIL v4. Habilidad comprobada en la gestión de crisis operativas, distribución equilibrada de cargas de trabajo y aseguramiento del cumplimiento de los niveles de servicio contractuales.",
-            3: "Supervisor de operaciones con más de 4 años de experiencia en gestión de mesas de servicio y soporte a plataformas corporativas. Acreditado en ITIL v4, con amplio dominio en la supervisión de turnos 24/7, monitoreo en tiempo real del tráfico de tickets, escalamientos jerárquicos y cumplimiento riguroso de acuerdos de nivel de servicio (SLA/OLA).",
-            4: "Líder de operaciones especializado en coordinación de turnos para atención a incidentes y solicitudes de usuarios. Certificado en ITIL v4, con sólida experiencia en análisis de tendencias operativas, retroalimentación técnica a personal de primer contacto y aseguramiento de la calidad en la documentación de folios institucionales.",
-            5: "Supervisor operativo con más de 3 años coordinando turnos de soporte tecnológico y mesas de atención a usuarios. Certificado en ITIL v4, con experiencia en administración de personal, mitigación de cuellos de botella en horarios pico y colaboración con áreas de infraestructura para resolución ágil de fallas masivas.",
-            6: "Supervisor de Operaciones Telefónicas y Conmutación Central con más de 5 años gestionando plataformas de telefonía IP, PBX corporativo y troncales SIP/E1. Enfoque estratégico en la administración del tráfico de llamadas entrantes en horarios pico, aseguramiento de la disponibilidad de las líneas de enlace institucional y supervisión de etiqueta ejecutiva.",
-            7: "Ingeniero especialista en Inteligencia Artificial Generativa, Prompt Engineering y Automatización de Canales de Soporte. Certificado por Google Cloud, con experiencia en diseño y parametrización de prompts para asistentes virtuales de primer contacto, integración RAG con repositorios de conocimiento institucionales y análisis semántico para el desvío eficiente de solicitudes recurrentes.",
-            8: "Gestor de Incidentes Mayores (MIM) Nivel IV con acreditación ITIL v4, especializado en la conducción técnica de comités de crisis (War Rooms) para fallas de severidad crítica P1. Habilidad comprobada para articular equipos de redes, bases de datos y desarrollo, logrando la restauración ágil de plataformas transaccionales y minimizando el impacto en la operación del usuario.",
-            9: "Analista Senior Nivel IV experto en Metodologías de Análisis de Causa Raíz (RCA) como Diagramas de Ishikawa, 5 Porqués y Análisis de Modos de Falla (FMEA). Experiencia destacada en la investigación forense de caídas de servicio, redacción de informes técnicos ejecutivos post-mortem y establecimiento de barreras preventivas definitivas.",
-            10: "Especialista en Gestión de Problemas ITIL y Diagnóstico de Arquitecturas de Software. Amplio dominio en la correlación analítica de incidentes repetitivos, identificación de defectos estructurales en aplicaciones corporativas y gestión del ciclo de vida del Error Conocido (KEDB) en plataformas ITSM corporativas.",
-            11: "Ingeniero Nivel IV de Enlace Tecnológico con sólida experiencia en la coordinación operativa entre la Mesa de Ayuda y los equipos de Infraestructura Cloud, Servidores Windows/Linux y Telecomunicaciones. Experto en diagnóstico de trazas de red, conectividad de bases de datos y validación de parches de seguridad.",
-            12: "Analista Especializado Nivel IV en Planes de Continuidad del Negocio (BCP/DRP) y Resiliencia Operativa. Trayectoria liderando pruebas de conmutación por falla, auditorías de recuperación ante desastres y diseño de procedimientos de contingencia para la operación ininterrumpida de servicios de atención.",
-            13: "Gestor Nivel IV de Incidentes y Problemas con certificación ITIL v4, enfocado en el seguimiento proactivo de planes de acción correctiva y cierre de registros de problemas tecnológicos para prevenir la recurrencia de afectaciones en sistemas sustantivos.",
-            14: "Especialista Nivel IV en Diagnóstico Operativo y Soporte a Aplicaciones Críticas. Experto en la elaboración de diagnósticos de impacto al negocio, comunicación ejecutiva durante contingencias tecnológicas y seguimiento de acuerdos con proveedores de tecnología.",
-            15: "Especialista en Gestión Documental, Estandarización de Procesos y Gobernanza de Conocimiento bajo la metodología KCS (Knowledge-Centered Service) y mejores prácticas ITIL v4. Dominio en la redacción de procedimientos operativos estandarizados (SOPs), guías rápidas de resolución y mantenimiento de bibliotecas de conocimiento.",
-            16: "Especialista en Capacitación, Diseño Instruccional y Desarrollo del Talento para operaciones BPO de soporte tecnológico bajo ITIL v4. Habilidad en la creación de planes de onboarding ágiles, reducción de curvas de aprendizaje en nuevas generaciones y diseño de evaluaciones prácticas basadas en escenarios reales de soporte.",
-            17: "Analista de Aseguramiento de Calidad en Mesas de Ayuda y Contact Centers, certificado en ITIL v4 y normas de calidad transaccional COPC. Experto en auditoría sistemática de interacciones de voz y canales digitales, calibraciones interdepartamentales y retroalimentación constructiva para el incremento del First Contact Resolution (FCR).",
-            18: "Analista de Calidad Operativa con acreditación ITIL v4, especializado en muestreo estadístico de tickets, análisis de no conformidades, detección de necesidades de refuerzo en procedimientos y diseño de matrices de evaluación orientadas a la satisfacción del usuario.",
-            19: "Ingeniero de Business Intelligence y Analítica de Operaciones con certificación ITIL v4. Experto en el modelado de datos en Power BI, lenguaje DAX, consultas SQL complejas y automatización de tableros de control en tiempo real para el seguimiento minucioso de ANS, ocupación y productividad de la Mesa de Ayuda.",
-            20: "Ejecutivo de Mesa de Servicio con enfoque prioritario en la resolución en primer contacto (FCR >88%) y tipificación precisa en herramientas ITSM. Destreza en el diagnóstico telefónico de fallas comunes en sistemas operativos Windows, paquetería de oficina y accesos a portales corporativos."
+            1: "Profesional senior con amplia trayectoria en la dirección estratégica y gobernanza operativa de Mesas de Ayuda e ITSM. Experto en el manejo y optimización de paquetería Office corporativa, liderazgo de programas de capacitación, administración de recursos humanos, gestión presupuestal y auditorías de calidad bajo marcos ITIL v4 y PMP.",
+            2: "Supervisor con sólida trayectoria en la coordinación de turnos operativos en Mesas de Ayuda y centros de contacto. Especialista en la optimización de métricas de servicio (TMO, FCR, Adherencia), coaching de personal, y resolución de incidentes bajo mejores prácticas ITIL v4 y sistemas computacionales.",
+            3: "Supervisor con sólida trayectoria en la coordinación de turnos operativos en Mesas de Ayuda y centros de contacto. Especialista en la optimización de métricas de servicio (TMO, FCR, Adherencia), coaching de personal, y resolución de incidentes bajo mejores prácticas ITIL v4 y sistemas computacionales.",
+            4: "Supervisor con sólida trayectoria en la coordinación de turnos operativos en Mesas de Ayuda y centros de contacto. Especialista en la optimización de métricas de servicio (TMO, FCR, Adherencia), coaching de personal, y resolución de incidentes bajo mejores prácticas ITIL v4 y sistemas computacionales.",
+            5: "Supervisor con sólida trayectoria en la coordinación de turnos operativos en Mesas de Ayuda y centros de contacto. Especialista en la optimización de métricas de servicio (TMO, FCR, Adherencia), coaching de personal, y resolución de incidentes bajo mejores prácticas ITIL v4 y sistemas computacionales.",
+            6: "Supervisor de operaciones con amplia experiencia liderando grupos de atención en conmutación telefónica y enlaces corporativos. Especialista en la administración de tráfico multilínea, telefonía IP, PBX y control de calidad bajo etiqueta telefónica ejecutiva.",
+            7: "Ingeniero especialista en Inteligencia Artificial y Prompt Engineering con sólida trayectoria en diseño y arquitectura de sistemas distribuidos, microservicios y soluciones en la nube. Experto en la implementación de IA conversacional (chatbots y voicebots), automatización de mesas de servicio mediante pipelines de voz y modelos LLMs. Repositorios de evidencia técnica pública: github.com/morocog/ai-itsm-integration y github.com/morocog/nlp-ticket-classifier.",
+            8: "Gestor operativo con amplia experiencia en la atención y resolución de incidentes tecnológicos de impacto crítico en mesas de ayuda corporativas. Especialista en el diagnóstico forense de sistemas, análisis de causa raíz (RCA), planes de capacitación y auditorías de calidad bajo mejores prácticas ITIL v4.",
+            9: "Gestor operativo con amplia experiencia en la atención y resolución de incidentes tecnológicos de impacto crítico en mesas de ayuda corporativas. Especialista en el diagnóstico forense de sistemas, análisis de causa raíz (RCA), planes de capacitación y auditorías de calidad bajo mejores prácticas ITIL v4.",
+            10: "Gestor operativo con amplia experiencia en la atención y resolución de incidentes tecnológicos de impacto crítico en mesas de ayuda corporativas. Especialista en el diagnóstico forense de sistemas, análisis de causa raíz (RCA), planes de capacitación y auditorías de calidad bajo mejores prácticas ITIL v4.",
+            11: "Gestor operativo con amplia experiencia en la atención y resolución de incidentes tecnológicos de impacto crítico en mesas de ayuda corporativas. Especialista en el diagnóstico forense de sistemas, análisis de causa raíz (RCA), planes de capacitación y auditorías de calidad bajo mejores prácticas ITIL v4.",
+            12: "Gestor operativo con amplia experiencia en la atención y resolución de incidentes tecnológicos de impacto crítico en mesas de ayuda corporativas. Especialista en el diagnóstico forense de sistemas, análisis de causa raíz (RCA), planes de capacitación y auditorías de calidad bajo mejores prácticas ITIL v4.",
+            13: "Gestor operativo con amplia experiencia en la atención y resolución de incidentes tecnológicos de impacto crítico en mesas de ayuda corporativas. Especialista en el diagnóstico forense de sistemas, análisis de causa raíz (RCA), planes de capacitación y auditorías de calidad bajo mejores prácticas ITIL v4.",
+            14: "Gestor operativo con amplia experiencia en la atención y resolución de incidentes tecnológicos de impacto crítico en mesas de ayuda corporativas. Especialista en el diagnóstico forense de sistemas, análisis de causa raíz (RCA), planes de capacitación y auditorías de calidad bajo mejores prácticas ITIL v4.",
+            15: "Especialista en gestión documental de TI, estandarización de procesos y gobernanza de bases de conocimiento bajo la metodología KCS e ITIL v4. Dominio avanzado en la redacción de procedimientos y uso experto de herramientas de Office corporativo.",
+            16: "Especialista en capacitación, diseño instruccional y entrenamiento de personal de soporte técnico bajo ITIL v4. Experto en aceleración de curvas de aprendizaje, evaluaciones de desempeño y diseño de materiales didácticos utilizando herramientas de Office corporativo.",
+            17: "Analista de aseguramiento de calidad con experiencia en auditorías de interacción de voz y canales digitales para mesas de servicio bajo lineamientos COPC. Experto en la elaboración de métricas, reportes de cumplimiento y uso avanzado de herramientas de Office.",
+            18: "Analista de aseguramiento de calidad con experiencia en auditorías de interacción de voz y canales digitales para mesas de servicio bajo lineamientos COPC. Experto en la elaboración de métricas, reportes de cumplimiento y uso avanzado de herramientas de Office.",
+            19: "Especialista en analítica de operaciones, modelado de datos y business intelligence. Experto en diseño de reportes ejecutivos automatizados utilizando Power BI, lenguaje DAX, bases de datos SQL y herramientas avanzadas de Office.",
+            20: "Ejecutivo de mesa de servicio y soporte tecnológico multicanal. Enfoque en la atención a clientes, diagnóstico rápido en sistemas operativos, redes y uso de herramientas computacionales, con alto porcentaje de resolución en primer contacto (FCR)."
         };
 
         function adaptarTextoPerfilConCertificacion(textoOriginal, tipoCert) {
@@ -1412,10 +1417,11 @@
             const certActual = r.tipoCertificacion || (r.id === 7 ? "Certificación Profesional en IA / Machine Learning" : (r.itilReq ? (r.id === 1 ? "ITIL 4 Managing Professional (MP)" : "ITIL 4 Foundation") : "No requerida"));
             
             let textoBase = PERFILES_CANONICOS_56[id] || (
-                r.perfilRomano === "II" ? "Analista operativo en Control de Acceso Lógico (CAL) con amplio dominio en la administración de cuentas de usuario, reseteo seguro de credenciales y asignación de permisos en Active Directory conforme a políticas de seguridad de la información." :
-                r.perfilRomano === "V" ? "Especialista en conmutación telefónica corporativa con experiencia en administración de tráfico multilínea en horas pico, atención de consultas institucionales y canalización prioritaria de enlaces oficiales con etiqueta ejecutiva." :
-                r.puesto.includes("Soporte Técnico") ? "Técnico de Soporte en Sitio y Microinformática con experiencia en diagnóstico físico, mantenimiento preventivo/correctivo de computadoras de escritorio, laptops, impresoras y configuración de periféricos institucionales." :
-                "Especialista operativo con sólida trayectoria en Centros de Contacto y soporte de tecnologías de la información, enfocado en el cumplimiento riguroso de procedimientos y niveles de servicio bajo mejores prácticas ITIL."
+                id >= 20 && id <= 38 ? PERFILES_CANONICOS_56[20] :
+                r.perfilRomano === "II" || (id >= 44 && id <= 53) ? "Analista de control de acceso lógico e identidades corporativas con amplia experiencia en la atención remota, administración de permisos y reseteo seguro de credenciales en Active Directory bajo políticas de seguridad de la información y sistemas computacionales." :
+                r.perfilRomano === "V" || (id >= 54 && id <= 56) ? "Operador de conmutación telefónica corporativa con amplia experiencia en atención multilínea, enrutamiento de llamadas y administración de enlaces institucionales bajo etiqueta telefónica ejecutiva y sistemas computacionales." :
+                r.puesto.includes("Soporte Técnico") || (id >= 39 && id <= 43) ? "Técnico especialista en soporte microinformático en sitio, mantenimiento preventivo y correctivo de hardware, configuración de sistemas operativos, periféricos, impresoras de red y sistemas computacionales." :
+                "Ejecutivo de mesa de servicio y soporte tecnológico multicanal. Enfoque en la atención a clientes, diagnóstico rápido en sistemas operativos, redes y uso de herramientas computacionales, con alto porcentaje de resolución en primer contacto (FCR)."
             );
 
             let textoPerfil = adaptarTextoPerfilConCertificacion(textoBase, certActual);
@@ -1472,16 +1478,16 @@
             }
 
             if (id === 1) {
-                // GERENTE
+                // GERENTE (Numeral 31)
                 experiencias = [
                     {
                         empresa: emp1,
                         periodo: periodo1,
                         puesto: "Gerente de Operaciones y Entrega de Servicio TI (Service Delivery Manager)",
                         funciones: [
+                            "Desempeño de funciones ejecutivas como Gerente de Proyecto y Líder de Oficina en servicios de Mesas de help desk.",
                             "Dirección general de la operación de Mesa de Ayuda institucional garantizando cumplimiento de SLAs (99.2%) y disponibilidad 24/7.",
-                            "Liderazgo en comités de gobierno y rendición de cuentas con directivos para presentación de tableros ejecutivos y KPIs estratégicos.",
-                            "Gestión de riesgos operativos, continuidad de negocio (BCP/DRP) y optimización de costos operativos mediante automatización."
+                            "Gestión de tecnología de la industria, diseño de programas de capacitación, administración de recursos humanos y auditorías de calidad."
                         ]
                     },
                     {
@@ -1502,12 +1508,29 @@
                         ]
                     }
                 ];
-                skills = ["ITIL v4 Managing Professional", "Gobernanza de TI & COBIT", "Gestión de SLAs Contractuales", "PMP / Scrum Master", "Power BI Ejecutivo", "Liderazgo de BPO & Contact Centers", "Gestión Presupuestal"];
+                skills = [
+                    "Manejo de paquetería Office (Microsoft Teams, Word, PowerPoint, Outlook, OneNote, OneDrive y Excel) en Nivel Experto",
+                    "Conocimiento de tecnología de la industria, capacitación, recursos humanos y calidad",
+                    "ITIL v4 Managing Professional",
+                    "Gobernanza de TI & COBIT",
+                    "Gestión de SLAs Contractuales",
+                    "PMP / Scrum Master",
+                    "Power BI Ejecutivo",
+                    "Liderazgo de BPO & Contact Centers",
+                    "Gestión Presupuestal"
+                ];
             } else if (id >= 2 && id <= 6) {
-                // SUPERVISORES
+                // SUPERVISORES (Numeral 25 / 26)
                 const puestoSup = id === 6 ? "Supervisor de Conmutador Telefónico y Enlaces" : "Supervisor de Turno – Mesa de Ayuda e Incidentes";
                 const s1 = id === 6 ? "Telefonía IP & PBX Corporativo" : "Supervisión Operativa Contact Center";
                 const s2 = id === 6 ? "Enrutamiento de Líneas Críticas" : "Métricas ACD / TMO / FCR / Adherencia";
+
+                let f1_sup = "Coordinación y supervisión de grupos de atención telefónica, mesa de servicio y soporte tecnológico en sitio.";
+                let f3_sup = "Aplicación de conocimientos avanzados en sistemas computacionales para optimizar la adherencia y tiempos de atención.";
+                if (id === 6) {
+                    f1_sup = "Supervisión operativa de grupos de atención telefónica, medios electrónicos y sistemas de Conmutador central.";
+                    f3_sup = "Aplicación de conocimientos en sistemas computacionales y telefonía IP para el enrutamiento de líneas críticas.";
+                }
 
                 experiencias = [
                     {
@@ -1515,9 +1538,9 @@
                         periodo: periodo1,
                         puesto: puestoSup,
                         funciones: [
-                            "Liderazgo operativo en turno para la coordinación de personal operativo, asegurando adherencia y calidad de atención.",
+                            f1_sup,
                             "Monitoreo de colas de espera en tiempo real, gestión de escalamientos de alta prioridad y aseguramiento de ANS.",
-                            "Ejecución de sesiones semanales de coaching individual para reducción de tiempos de atención y errores en documentación."
+                            f3_sup
                         ]
                     },
                     {
@@ -1538,18 +1561,23 @@
                         ]
                     }
                 ];
-                skills = [s1, s2, id === 6 ? "Gestión de Conmutadores" : "ITIL v4 Foundation", "Monitoreo en Tiempo Real", "ServiceNow / Remedy", "Liderazgo de Equipos", "Microsoft Office 365 Pro"];
+                skills = [
+                    "Conocimientos básicos en sistemas computacionales",
+                    s1, s2, id === 6 ? "Gestión de Conmutadores" : "ITIL v4 Foundation",
+                    "Monitoreo en Tiempo Real", "ServiceNow / Remedy", "Liderazgo de Equipos",
+                    "Manejo de paquetería Office (Microsoft Teams, Word, PowerPoint, Outlook, OneNote, OneDrive y Excel) en Nivel Experto"
+                ];
             } else if (id === 7) {
-                // ESPECIALISTA IA
+                // ESPECIALISTA IA (Numeral 29)
                 experiencias = [
                     {
                         empresa: emp1,
                         periodo: periodo1,
                         puesto: "Especialista en Inteligencia Artificial y Prompt Engineering",
                         funciones: [
-                            "Diseño y parametrización de prompts para modelos LLM integrados al portal de autoservicio y chatbot institucional.",
-                            "Desarrollo de flujos de auto-recuperación de accesos e integración RAG con la base de conocimientos KCS.",
-                            "Monitoreo y calibración de la tasa de acierto (Accuracy >94%) y desvío eficiente de incidentes recurrentes."
+                            "Diseño y arquitectura de sistemas distribuidos, microservicios y soluciones escalables en la nube o híbridas.",
+                            "Diseño, implementación y operación de soluciones de IA conversacional (chatbots y voicebots), sistemas de automatización de Mesa de Ayuda e integración RAG con bases de conocimientos.",
+                            "Diseño y operación de pipelines de voz en tiempo real con Speech-to-Text (ASR), Text-to-Speech (TTS) y orquestación con modelos de lenguaje (LLMs) integrados a plataformas ITSM."
                         ]
                     },
                     {
@@ -1570,18 +1598,26 @@
                         ]
                     }
                 ];
-                skills = ["Prompt Engineering Avanzado", "Google Cloud Generative AI", "NLP & Chatbots de Soporte", "Python / Scripts Automatizados", "Integración ITSM / APIs REST", "Bases de Conocimiento RAG", "Machine Learning"];
+                skills = [
+                    "Arquitectura de soluciones de IA (Orquestación de LLMs, Contexto y Memoria, Integraciones REST API)",
+                    "Gobierno, seguridad y ética de IA (Seguridad de datos PII, Control de alucinaciones, Observabilidad de modelos)",
+                    "Automatización en Mesa de Ayuda (Flujos de autoservicio, Clasificación de tickets, Resolución L1)",
+                    "Google Cloud Generative AI & Machine Learning",
+                    "Python / Scripts Automatizados",
+                    "Bases de Conocimiento RAG",
+                    "Certificación Profesional en IA / Machine Learning"
+                ];
             } else if (id >= 8 && id <= 14) {
-                // GESTORES INCIDENTES MAYORES
+                // GESTORES INCIDENTES MAYORES (Numeral 27)
                 experiencias = [
                     {
                         empresa: emp1,
                         periodo: periodo1,
                         puesto: "Gestor de Incidentes Mayores y Problemas (Nivel IV)",
                         funciones: [
-                            "Activación y conducción técnica de comités de crisis (War Rooms) para incidentes de impacto severo P1.",
-                            "Diagnóstico profundo de trazas, logs y comunicaciones para la identificación ágil de la causa raíz (RCA).",
-                            "Elaboración de informes ejecutivos post-mortem y establecimiento de planes de remediación definitiva."
+                            "Gestión en atención y resolución de incidentes críticos de tecnología con usuarios en mesas de ayuda.",
+                            "Conducción técnica de comités de crisis (War Rooms) y aplicación de metodologías de análisis de causa raíz (RCA).",
+                            "Aplicación de conocimientos de tecnología de la industria, control de calidad operativa y planes de capacitación del personal."
                         ]
                     },
                     {
@@ -1602,26 +1638,60 @@
                         ]
                     }
                 ];
-                skills = ["Gestión de Incidentes Mayores (MIM)", "Análisis Causa Raíz (RCA)", "ITIL v4 Foundation", "Diagnóstico de Redes y Servidores", "ServiceNow / Remedy ITSM", "Coordinación de War Rooms", "Directorio Activo Avanzado"];
+                skills = [
+                    "Conocimiento de tecnología de la industria, capacitación, recursos humanos y calidad",
+                    "Gestión de Incidentes Mayores (MIM)", "Análisis Causa Raíz (RCA)", "ITIL v4 Foundation",
+                    "Diagnóstico de Redes y Servidores", "ServiceNow / Remedy ITSM", "Coordinación de War Rooms", "Directorio Activo Avanzado"
+                ];
             } else if (id >= 15 && id <= 19) {
-                // STAFF (Documental, Capacitador, Calidad, BI)
+                // STAFF (Documental, Capacitador, Calidad, BI - Numerales 30/32/33/34)
                 const perfilesStaff = {
-                    15: { rol: "Gestión Documental y Procesos", p1: "Estandarización de SOPs y Gobernanza KCS", s1: "Documentación ITSM / KCS" },
-                    16: { rol: "Capacitación y Formación Continua", p1: "Diseño Instruccional y Curvas de Aprendizaje", s1: "Capacitación de Personal TI" },
-                    17: { rol: "Aseguramiento de Calidad", p1: "Auditoría de Calidad y Calibraciones COPC", s1: "Normas COPC & Calibraciones" },
-                    18: { rol: "Aseguramiento de Calidad", p1: "Muestreo Estadístico y Evaluación Transaccional", s1: "Calidad Transaccional" },
-                    19: { rol: "Business Intelligence y Analítica", p1: "Modelado de Datos DAX y Reportería Contractual", s1: "Power BI & Consultas SQL" }
+                    15: {
+                        rol: "Gestor Documental y Procesos",
+                        f1: "Gestión documental de TI y estandarización de procesos de atención a clientes y mesas de servicio.",
+                        f2: "Gobernanza de conocimiento bajo lineamientos ITIL v4 y KCS.",
+                        f3: "Elaboración de manuales y procedimientos empleando herramientas de Office en Nivel Experto.",
+                        s1: "Documentación ITSM / KCS"
+                    },
+                    16: {
+                        rol: "Capacitador y Formador Continua",
+                        f1: "Creación de programas de entrenamiento, capacitación y diseño instruccional para personal de soporte tecnológico.",
+                        f2: "Evaluación de curvas de aprendizaje y aplicación de métricas de desempeño de alta experiencia en mesas de servicio.",
+                        f3: "Desarrollo de materiales didácticos interactivos utilizando herramientas de Office en Nivel Experto.",
+                        s1: "Capacitación de Personal TI"
+                    },
+                    17: {
+                        rol: "Analista de Aseguramiento de Calidad",
+                        f1: "Supervisión de calidad en grupos de atención telefónica, mesas de servicio, Help Desk y medios electrónicos.",
+                        f2: "Auditoría transaccional de interacciones de voz y canales de chat, calibraciones y sesiones de retroalimentación.",
+                        f3: "Elaboración de reportes de cumplimiento y calidad utilizando herramientas de Office en Nivel Experto.",
+                        s1: "Normas COPC & Calibraciones"
+                    },
+                    18: {
+                        rol: "Analista de Calidad Operativa",
+                        f1: "Supervisión de calidad en grupos de atención telefónica, mesas de servicio, Help Desk y medios electrónicos.",
+                        f2: "Auditoría transaccional de interacciones de voz y canales de chat, calibraciones y sesiones de retroalimentación.",
+                        f3: "Elaboración de reportes de cumplimiento y calidad utilizando herramientas de Office en Nivel Experto.",
+                        s1: "Calidad Transaccional"
+                    },
+                    19: {
+                        rol: "Especialista de Business Intelligence y Analítica",
+                        f1: "Modelado de datos, análisis de información y business intelligence para el seguimiento de ANS operativos.",
+                        f2: "Uso de herramientas especializadas como Power BI, lenguaje DAX y consultas SQL complejas.",
+                        f3: "Automatización de tableros de control ejecutivos y reportería utilizando herramientas de Office en Nivel Experto.",
+                        s1: "Power BI & Consultas SQL"
+                    }
                 }[id];
 
                 experiencias = [
                     {
                         empresa: emp1,
                         periodo: periodo1,
-                        puesto: `Especialista de ${perfilesStaff.rol}`,
+                        puesto: perfilesStaff.rol,
                         funciones: [
-                            `Desarrollo e implementación de controles analíticos para ${perfilesStaff.p1}.`,
-                            "Generación de tableros de control ejecutivos y matrices de cumplimiento normativo para auditorías.",
-                            "Facilitación de mesas de trabajo interdepartamentales para la actualización de procedimientos estándar."
+                            perfilesStaff.f1,
+                            perfilesStaff.f2,
+                            perfilesStaff.f3
                         ]
                     },
                     {
@@ -1642,32 +1712,39 @@
                         ]
                     }
                 ];
-                skills = [perfilesStaff.s1, "ITIL v4 Foundation", "Power BI / Excel Avanzado", "Auditoría de Procesos", "Modelado de Indicadores", "Gestión Documental", "ServiceNow Reporting"];
+                skills = [
+                    "Manejo de paquetería Office (Microsoft Teams, Word, PowerPoint, Outlook, OneNote, OneDrive y Excel) en Nivel Experto",
+                    perfilesStaff.s1, "ITIL v4 Foundation", "Power BI / Excel Avanzado", "Auditoría de Procesos", "Modelado de Indicadores", "ServiceNow Reporting"
+                ];
             } else {
-                // OPERATIVO (IDs 20 a 56)
+                // OPERATIVO (IDs 20 a 56 - Numeral 23 / 24 / 28)
                 let subArea = "Mesa de Servicio Multicanal";
-                let puestoExp1 = "Ejecutivo de Soporte y Operación – Mesa de Servicio";
-                let f1 = "Atención y resolución en primer contacto de solicitudes e incidentes asignados según los procedimientos oficiales.";
-                let f2 = "Registro puntual, tipificación y documentación completa de cada interacción en la plataforma de tickets.";
+                let puestoExp1 = "Agente de mesa de servicio y mesa de soporte técnico";
+                let f1 = "Atención telefónica y soporte técnico a través de canales digitales y medios electrónicos.";
+                let f2 = "Servicio a clientes y mesa de servicio para el registro y resolución de incidentes.";
+                let f3 = "Uso de conocimientos básicos en sistemas computacionales para el diagnóstico en primer contacto.";
                 let skillEsp = "Atención Telefónica Multicanal";
 
                 if (r.perfilRomano === "II" || (id >= 44 && id <= 53)) {
                     subArea = "Control de Acceso Lógico (CAL)";
-                    puestoExp1 = "Analista de Control de Acceso Lógico e Identidades";
-                    f1 = "Administración de identidades, restablecimiento de credenciales y asignación de permisos en Active Directory.";
-                    f2 = "Validación rigurosa de formatos de autorización de usuarios conforme a políticas de seguridad de la información.";
+                    puestoExp1 = "Agente de Control de Acceso Lógico";
+                    f1 = "Atención telefónica y medios electrónicos para la administración de accesos e identidades corporativas.";
+                    f2 = "Gestión de cuentas, desbloqueo y reseteo seguro de credenciales en Active Directory.";
+                    f3 = "Validación de formatos de autorización conforme a políticas de seguridad y sistemas computacionales.";
                     skillEsp = "Gestión de Identidades & Active Directory";
                 } else if (r.perfilRomano === "V" || (id >= 54 && id <= 56)) {
                     subArea = "Atención en Conmutador Central";
-                    puestoExp1 = "Operador de Conmutador Central y Telefonía Institucional";
-                    f1 = "Enrutamiento preciso de llamadas troncales, atención al directorio institucional y gestión de enlaces telefónicos.";
-                    f2 = "Administración de flujo de llamadas entrantes garantizando tiempos mínimos de espera y etiqueta ejecutiva.";
+                    puestoExp1 = "Agente Telefónico de Conmutador";
+                    f1 = "Atención telefónica, conmutación central y enrutamiento de líneas de enlace institucional.";
+                    f2 = "Administración del tráfico de llamadas entrantes garantizando la etiqueta telefónica ejecutiva.";
+                    f3 = "Canalización de consultas operativas empleando conocimientos básicos en sistemas computacionales y conmutadores.";
                     skillEsp = "Conmutador & Enrutamiento de Llamadas";
                 } else if (id >= 39 && id <= 43) {
                     subArea = "Soporte Técnico a Usuarios (Microinformática)";
-                    puestoExp1 = "Técnico de Soporte en Sitio y Microinformática";
-                    f1 = "Mantenimiento preventivo/correctivo, diagnóstico de hardware, configuración de periféricos e impresoras de red.";
-                    f2 = "Despliegue de imágenes de sistema operativo y entrega formal de resguardos de equipo de cómputo.";
+                    puestoExp1 = "Agente de mesa de servicio y mesa de soporte técnico";
+                    f1 = "Atención telefónica, medios electrónicos y soporte microinformático en sitio a usuarios finales.";
+                    f2 = "Mantenimiento preventivo y correctivo de hardware, configuración de periféricos e impresoras de red.";
+                    f3 = "Resolución de solicitudes empleando conocimientos básicos en sistemas computacionales y redes locales.";
                     skillEsp = "Soporte Microinformática & Hardware";
                 }
 
@@ -1679,7 +1756,7 @@
                         funciones: [
                             f1,
                             f2,
-                            "Seguimiento y cierre oportuno de tickets garantizando altos niveles de satisfacción del usuario final (CSAT)."
+                            f3
                         ]
                     },
                     {
@@ -1701,7 +1778,11 @@
                     }
                 ];
 
-                skills = [skillEsp, "Microsoft Office 365", "Ticketing ServiceNow / Remedy", "Atención Telefónica Profesional", "Desbloqueo de Accesos / AD", "Captura Ágil y Escucha Activa", "Resolución FCR"];
+                skills = [
+                    "Conocimientos básicos en sistemas computacionales: " + skillEsp,
+                    "Manejo de paquetería Office (Microsoft Teams, Word, PowerPoint, Outlook, OneNote, OneDrive y Excel) en Nivel Experto",
+                    "Ticketing ServiceNow / Remedy", "Atención Telefónica Profesional", "Desbloqueo de Accesos / AD", "Captura Ágil y Escucha Activa", "Resolución FCR"
+                ];
             }
 
             // Adaptar dinámicamente el chip de skill ITIL con la certificación seleccionada
@@ -1870,32 +1951,29 @@
             const claveEstilo = obtenerClaveEstilo(r);
             const estilo = ESTILOS_NIVEL_CV[claveEstilo] || ESTILOS_NIVEL_CV.OPERATIVO;
 
-            document.getElementById('cvFolderRef').textContent = `Folder: Perfil ${r.perfilRomano || 'I'} (${r.numeral}) / Recurso #${r.id}`;
+            document.getElementById('cvFolderRef').textContent = `Perfil ${r.perfilRomano || 'I'}`.replace(/\d+/g, '').trim();
 
             // Aplicación del Tema Dinámico
             document.getElementById('cvFichaData').className = estilo.fichaClass;
             
             const badgeNivel = document.getElementById('cvNivelBadge');
-            badgeNivel.textContent = `PERFIL ${r.perfilRomano || 'I'} • ${r.numeral ? r.numeral.split(' ')[1] || '' : ''}`;
-            badgeNivel.className = estilo.badgeNivelClass;
+            badgeNivel.style.display = 'none';
 
             const badgeSobre = document.getElementById('cvSobreBadge');
-            if (r.aplicaPropuesta) {
-                badgeSobre.textContent = "SOBRE 1 (LICITACIÓN)";
-                badgeSobre.className = "bg-blue-600 text-white font-bold px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider";
-                badgeSobre.style.display = 'inline-block';
-            } else {
-                badgeSobre.textContent = "OPERACIÓN ADICIONAL";
-                badgeSobre.className = "bg-slate-600 text-white font-semibold px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider";
-                badgeSobre.style.display = 'inline-block';
-            }
+            badgeSobre.style.display = 'none';
 
             const elNombre = document.getElementById('cvNombre');
             elNombre.textContent = (r.nombre || "NOMBRE DEL CANDIDATO").toUpperCase();
             elNombre.className = estilo.nombreClass;
 
             const elPuesto = document.getElementById('cvPuesto');
-            elPuesto.textContent = (r.puesto || "PUESTO OPERATIVO").toUpperCase();
+            let puestoVisual = r.puesto || "PUESTO OPERATIVO";
+            if (r.id >= 20 && r.id <= 43) {
+                puestoVisual = "Agente de mesa de servicio y mesa de soporte técnico";
+            } else {
+                puestoVisual = puestoVisual.replace(/\s*\([Pp]os[^\)]+\)/gi, "").trim();
+            }
+            elPuesto.textContent = puestoVisual.toUpperCase();
             elPuesto.className = estilo.puestoClass;
 
             document.getElementById('cvMetaBlock').innerHTML = estilo.metaBlockHtml(r);

@@ -74,9 +74,11 @@ Este archivo contiene el contexto persistente, reglas de gobernanza, estándares
 
 ---
 
-## ☁️ 8. PROTOCOLO OBLIGATORIO DE RESPALDO EN GITHUB
+## ☁️ 8. PROTOCOLO OBLIGATORIO DE CIERRE (1º DESPLIEGUE EN CLASP ➔ 2º RESPALDO EN GITHUB)
 
-- **Consulta Proactiva de Git Push:** Al finalizar cualquier tarea, corrección o nueva funcionalidad, el asistente DEBE preguntar explícitamente al usuario si desea guardar y subir de inmediato los cambios a GitHub (`git add`, `git commit` y `git push`), garantizando que no quede código pendiente ni cambios sin respaldar en la nube.
+Al finalizar cualquier tarea, corrección o nueva funcionalidad, el asistente DEBE seguir este orden exacto de cierre:
+1. **Primero (Despliegue en Clasp - Safe Deploy):** Preguntar explícitamente si desea subir y desplegar el código en Google Apps Script (`clasp push` y `clasp deploy -i <deploymentId>`). Es OBLIGATORIO realizar este despliegue creando una **Nueva Versión** sobre el ID de despliegue de producción existente, garantizando que NUNCA se altere el vínculo de producción ni se creen despliegues duplicados. Esto permite al usuario validar los cambios en caliente.
+2. **Segundo (Respaldo definitivo en GitHub):** Solo después de que el usuario valide la nueva versión desplegada y confirme su conformidad, el asistente preguntará proactivamente si desea respaldar el código definitivo en GitHub (`git add`, `git commit` y `git push`). Queda estrictamente prohibido consultar sobre GitHub antes de realizar el despliegue en Clasp.
 
 ---
 
@@ -106,6 +108,8 @@ Este archivo contiene el contexto persistente, reglas de gobernanza, estándares
   - Al generar scripts, paths o notificaciones de Telegram, debe utilizar la ruta absoluta correspondiente a la máquina activa (`c:\Users\moroc\...` o `c:\Users\SDVP\...`).
 - **Comando Proactivo de Sincronización al Cerrar Sesión:**
   - Siempre que el usuario mencione cambio de computadora, fin de jornada o respaldo, el asistente debe generar de forma proactiva el comando de 1 sola línea adaptado con la ruta de la máquina receptora (ej. si está en `moroc`, generar el comando para `SDVP`; si está en `SDVP`, generar el comando para `moroc`).
+  - **Obligatoriedad de Auditoría Global:** Ante cualquier cambio de máquina o cierre, el asistente DEBE ejecutar una auditoría de `git status` en lote sobre todos los subdirectorios del monorepo/workspace para verificar que no queden cambios locales dirty sin respaldar.
+  - **Inclusión Completa de Repositorios:** El comando unificado de sincronización de 1 sola línea para la máquina receptora DEBE incluir obligatoriamente todos los repositorios activos y modificados en la jornada (ej. `bienestarmente`, `telatapps`, `training-needs`, `talent-ecosystem`, etc.), asegurando que el usuario no sufra ninguna pérdida de sincronía al llegar a su destino.
 - **Gobernanza de Memoria Portátil & Auto-Sincronización Cero-Esfuerzo:**
   - Los archivos maestros (`.agents/AGENTS.md`, `MANUAL_ARQUITECTURA_TELAT.md`, `MEGA_PROMPT_TELAT_v10.md`, `Ecosistema-Telat-WFM.code-workspace`) deben viajar siempre respaldados dentro del repositorio `telatapps/` para garantizar portabilidad instantánea en la nube.
   - **RESPONSABILIDAD TOTAL DE LA IA:** El asistente se encarga AUTOMÁTICAMENTE de propagar `AGENTS.md` maestro a todos los sub-repositorios y hacer `git push` en `telatapps`. El usuario NO debe ejecutar comandos ni preocuparse por la sincronización manual.
@@ -135,8 +139,11 @@ Este archivo contiene el contexto persistente, reglas de gobernanza, estándares
 Cada vez que el usuario mencione la frase **"Vamos a ponernos reflexivos"** o use el comando **"MODO TRAZABILIDAD"**, debes pausar cualquier respuesta superficial y ejecutar un **Análisis Auditado en 4 Capas** para el proyecto actual, considerando la norma CICE del IMT de México y la usabilidad del equipo de entrenamiento.
 
 > [!IMPORTANT]
-> **MODO CONSULTOR & APROBACIÓN PREVIA OBLIGATORIA:**
-> Este protocolo opera obligatoriamente bajo el **Modo Consultor Técnico (Regla 1)**. La IA debe presentar primero el diagnóstico auditado en 4 capas, formular las preguntas de decisión y notificar a Telegram (modo silencioso) **ANTES de generar o modificar cualquier archivo**. Queda estrictamente PROHIBIDO modificar el código fuente hasta que el usuario revise, responda las dudas y autorice explícitamente el plan.
+> **MODO CONSULTOR & PROHIBICIÓN DE GENERACIÓN DE PLANS DE IMPLEMENTACIÓN (ANTI-AUTO-PROCEED):**
+> Este protocolo opera obligatoriamente bajo el **Modo Consultor Técnico (Regla 1)**.
+> - Queda **estrictamente PROHIBIDO** crear, modificar o guardar el archivo `implementation_plan.md` o cualquier otro artefacto de planificación formal. Esto evita que el sistema de auto-aprobación del IDE ejecute el plan antes de recibir tus respuestas a las preguntas clave.
+> - Toda propuesta técnica, análisis en 4 capas, 6 sombreros y preguntas aclaratorias **debe ser presentada única y exclusivamente en formato de texto dentro de la respuesta de chat**.
+> - Queda estrictamente PROHIBIDO modificar el código fuente o realizar acciones de desarrollo hasta que el usuario responda las dudas y autorice explícitamente el proceder en el chat.
 
 Ejecuta el análisis en este orden exacto:
 
